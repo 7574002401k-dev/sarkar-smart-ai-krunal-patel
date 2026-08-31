@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sarkar Smart AI</title>
+
+    <link rel="stylesheet" href="style-v4.css">
+
+    
+</head>
+<body>
+    
+<!-- ================= AI CAMERA ================= -->
+<!-- ================= AI CAMERA V2 ================= -->
+
+<section class="camera-section" id="cameraSection" style="display:none;">
+
+    <div class="camera-header">
+        <h2>🤖 AI Camera</h2>
+        <button id="closeCameraBtn">✖</button>
+    </div>
+  
+<!-- ================= AI FEATURES ================= -->
+
+<div class="ai-feature-grid">
+
+    <button class="ai-feature active" data-feature="lens">
+        🔍
+        <span>Lens</span>
+    </button>
+
+    <button class="ai-feature" data-feature="math">
+        🧮
+        <span>Math Solver</span>
+    </button>
+
+    <button class="ai-feature" data-feature="ocr">
+        📄
+        <span>OCR</span>
+    </button>
+
+    <button class="ai-feature" data-feature="translate">
+        🌐
+        <span>Translate</span>
+    </button>
+
+    <button class="ai-feature" data-feature="plant">
+        🌿
+        <span>Plant</span>
+    </button>
+
+    <button class="ai-feature" data-feature="animal">
+        🐶
+        <span>Animal</span>
+    </button>
+
+    <button class="ai-feature" data-feature="homework">
+        📚
+        <span>Homework</span>
+    </button>
+
+    <button class="ai-feature" data-feature="diagram">
+        🧪
+        <span>Diagram</span>
+    </button>
+
+</div>
+
+<!-- Camera Preview -->
+
+<video
+    id="cameraVideo"
+    autoplay
+    playsinline
+    muted>
+</video>
+
+    <!-- Camera Preview -->
+
+    <video id="cameraVideo" autoplay playsinline muted></video>
+
+    <canvas id="cameraCanvas" style="display:none;"></canvas>
+
+    <!-- Camera Buttons -->
+
+    <div class="camera-buttons">
+
+        <button id="openCameraBtn">
+            📷 Open Camera
+        </button>
+
+        <button id="switchCameraBtn">
+            🔄 Switch
+        </button>
+
+        <button id="captureBtn">
+            📸 Capture
+        </button>
+
+    </div>
+
+    <!-- Captured Image -->
+
+    <img
+        id="capturedImage"
+        style="display:none;">
+
+    <!-- Prompt -->
+
+    <div class="camera-prompt-box">
+
+        <textarea
+            id="cameraPrompt"
+            placeholder="Ask anything about this image...">
+        </textarea>
+
+        <button
+            id="analyzeImageBtn"
+            class="analyze-btn">
+
+            🤖 Analyze
+
+        </button>
+
+    </div>
+
+    <!-- Result -->
+
+    <div id="cameraResult"></div>
+
+</section>
+
+<!-- ================= MENU ================= -->
+
+<button class="menu-btn" id="menuBtn">☰</button>
+
+<!-- ================= SIDEBAR ================= -->
+
+<div class="sidebar" id="sidebar">
+
+    <button class="close-btn" id="closeBtn">✖</button>
+
+    <h2>🤖 AI Tools</h2>
+
+    <button class="tool-btn active" id="chatBtn">
+    💬 AI Chat
+</button>
+
+<button class="tool-btn" id="historyBtn">
+    🕒 Chat History
+</button>
+
+    <button class="tool-btn" id="pdfBtn">
+    📄 PDF Assistant
+</button>
+
+   <button class="tool-btn" id="imageCreatorBtn">
+    🎨 Image Creator
+</button>
+    
+    <button class="tool-btn" id="cameraBtn">
+    📷 Camera AI
+</button>
+
+<button class="tool-btn" id="quizBtn">
+    📝 Quiz Generator
+</button>
+
+</div>
+
+<!-- ================= HEADER ================= -->
+
+<header class="header">
+
+    <img src="images/logo.png"
+         alt="Sarkar Smart AI Logo"
+         class="logo">
+
+    <div>
+
+        <h1>Sarkar Smart AI</h1>
+
+        <p>
+            AI Assistant for Students, Teachers & Parents
+        </p>
+
+    </div>
+
+</header>
+
+
+<!-- ================= CHAT ================= -->
+
+<main class="container">
+
+    
+
+    <div class="chat-box" id="chatBox">
+
+        <div class="bot-message">
+
+            🤖 Hello! I am Sarkar Smart AI.<br><br>
+
+            How can I help you today?
+
+        </div>
+
+    </div>
+
+   <div class="input-area">
+
+    <button id="attachBtn" title="Attach">
+        ➕
+    </button>
+
+    <input
+        type="text"
+        id="userInput"
+        placeholder="Ask anything...">
+
+    <button id="micBtn">
+        🎤
+    </button>
+
+    <button id="sendBtn">
+        ➤
+    </button>
+
+</div>
+
+<!-- Hidden File Picker -->
+
+<input
+    type="file"
+    id="filePicker"
+    hidden
+    accept="image/*,.pdf,.doc,.docx,.txt">
+</main>
+
+<!-- ================= PDF ASSISTANT ================= -->
+
+<section class="pdf-assistant" id="pdfSection" style="display:none;">
+
+    <h2>📄 AI PDF Assistant</h2>
+
+    <input type="file" id="pdfFile" accept=".pdf">
+
+    <button id="readPdfBtn">📖 Read PDF</button>
+
+    <div id="pdfResult"></div>
+
+    </section>
+
+<!-- ================= IMAGE GENERATOR ================= -->
+
+<section class="image-generator" id="imageGenerator" style="display:none;">
+
+    <h2>🎨 AI Image Generator</h2>
+
+    <p>Describe the image you want to create.</p>
+
+    <div class="image-input">
+
+        <input
+            type="text"
+            id="imagePrompt"
+            placeholder="Describe any image you want to create...">
+
+        <button id="generateImageBtn">
+            Generate Image
+        </button>
+
+    </div>
+
+    <div id="imageResult"></div>
+
+</section>
+
+<!-- ================= QUIZ GENERATOR ================= -->
+
+<section class="quiz-generator" id="quizSection" style="display:none;">
+
+    <h2>📝 AI Quiz Generator</h2>
+
+    <input
+        type="text"
+        id="quizTopic"
+        placeholder="Enter Topic">
+
+    <select id="quizClass">
+
+        <option value="">Select Class</option>
+
+        <option>1</option>
+        <option>2</option>
+        <option>3</option>
+        <option>4</option>
+        <option>5</option>
+        <option>6</option>
+        <option>7</option>
+        <option>8</option>
+        <option>9</option>
+        <option>10</option>
+        <option>11</option>
+        <option>12</option>
+
+    </select>
+
+    <select id="quizSubject">
+
+        <option value="">Select Subject</option>
+
+        <option>Gujarati</option>
+        <option>Hindi</option>
+        <option>English</option>
+        <option>Mathematics</option>
+        <option>Science</option>
+        <option>Social Science</option>
+        <option>Computer</option>
+
+    </select>
+
+    <select id="quizDifficulty">
+
+        <option>Easy</option>
+
+        <option>Medium</option>
+
+        <option>Hard</option>
+
+    </select>
+
+    <input
+        type="number"
+        id="questionCount"
+        value="20"
+        min="1"
+        max="100">
+
+    <h3>Question Types</h3>
+
+    <label><input type="checkbox" id="mcq" checked> MCQ</label><br>
+
+    <label><input type="checkbox" id="fill"> Fill in the Blanks</label><br>
+
+    <label><input type="checkbox" id="match"> Match the Following</label><br>
+
+    <label><input type="checkbox" id="short"> Short Questions</label><br>
+
+    <label><input type="checkbox" id="long"> Long Questions</label><br><br>
+
+    <label>
+        <input type="checkbox" id="answerKey" checked>
+        Include Answer Key
+    </label>
+
+    <br><br>
+
+    <button id="generateQuizBtn">
+
+        📝 Generate Quiz
+
+    </button>
+
+    <div id="quizResult"></div>
+
+</section>
+<!-- ================= FOOTER ================= -->
+
+<footer>
+
+    <p>Created by <strong>Krunal Patel</strong></p>
+
+</footer>
+
+<div class="history-panel" id="historyPanel">
+
+    <div class="history-header">
+
+        <h2>🕒 Chat History</h2>
+
+        <button id="closeHistory">✖</button>
+
+    </div>
+
+    <div id="historyList"></div>
+
+</div>
+
+<script type="module" src="script.js"></script>
+
+<div class="attach-menu" id="attachMenu">
+
+    <button id="cameraAttach">
+        📷 Camera
+    </button>
+
+    <button id="galleryAttach">
+        🖼 Gallery
+    </button>
+
+    <button id="pdfAttach">
+        📄 PDF
+    </button>
+
+    <button id="fileAttach">
+        📁 File
+    </button>
+
+</div>
+
+
+</body>
+</html>
