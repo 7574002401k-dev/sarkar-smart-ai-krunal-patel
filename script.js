@@ -1,1143 +1,901 @@
-
-import {
-    addUserMessage,
-    addBotMessage,
-    addTyping
-} from "./chat.js";
-
-import {
-    scrollBottom,
-    escapeHtml
-} from "./utils.js";
-
-import { readPDF } from "./modules/pdf.js";
-
-alert("SCRIPT LOADED");
-
-let lastUserMessage = "";
-let selectedImage = null;
-
-let currentCapturedImage = "";
-let currentFeature = "lens";
-const generateImageBtn = document.getElementById("generateImageBtn");
-const imagePrompt = document.getElementById("imagePrompt");
-const imageResult = document.getElementById("imageResult");
-
-if (generateImageBtn) {
-
-    generateImageBtn.onclick = async () => {
-
-        const prompt = imagePrompt.value.trim();
-
-        if (!prompt) {
-            alert("Please enter image description.");
-            return;
-        }
-
-        imageResult.innerHTML = "🎨 Generating image...";
-
-        try {
-
-            const response = await fetch("/generate-image", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({
-                    prompt
-                })
-            });
-
-           const data = await response.json();
-
-console.log("IMAGE RESPONSE:", data);
-
-if (!response.ok) {
-    imageResult.innerHTML = `<pre>${JSON.stringify(data, null, 2)}</pre>`;
-    return;
-}
-
-if (data.image) {
-    imageResult.innerHTML = `
-        <img src="${data.image}" style="max-width:100%;border-radius:12px;">
-    `;
-} else {
-    imageResult.innerHTML = `<pre>${JSON.stringify(data, null, 2)}</pre>`;
-}
-        } catch (error) {
-
-            console.error("IMAGE API ERROR:", error);
-
-            imageResult.innerHTML = "❌ " + error.message;
-
-        }
-
-    };
-
-}
-
-const sendBtn = document.getElementById("sendBtn");
-const userInput = document.getElementById("userInput");
-let currentPdfText = "";
-const chatBtn = document.getElementById("chatBtn");
-const chatBox = document.getElementById("chatBox");
-const imageCreatorBtn = document.getElementById("imageCreatorBtn");
-const imageGenerator = document.getElementById("imageGenerator");
-
-const container = document.querySelector(".container");
-
-const micBtn = document.getElementById("micBtn");
-
-const menuBtn = document.getElementById("menuBtn");
-const closeBtn = document.getElementById("closeBtn");
-const closeCameraBtn = document.getElementById("closeCameraBtn");
-const sidebar = document.getElementById("sidebar");
-
-// ================= SIDEBAR OPEN / CLOSE =================
-
-if (menuBtn) {
-
-    menuBtn.addEventListener("click", () => {
-
-        console.log("☰ Menu Open");
-
-        sidebar.classList.add("active");
-
-    });
-
-}
-
-if (closeBtn) {
-
-    closeBtn.addEventListener("click", () => {
-
-        console.log("✖ Menu Close");
-
-        sidebar.classList.remove("active");
-
-    });
-
-}
-
-const startBtn = document.getElementById("startChatBtn");
-
-const pdfBtn = document.getElementById("pdfBtn");
-const pdfSection = document.getElementById("pdfSection");
-const pdfFile = document.getElementById("pdfFile");
-const readPdfBtn = document.getElementById("readPdfBtn");
-const pdfResult = document.getElementById("pdfResult");
-
-
-const attachBtn =
-document.getElementById("attachBtn");
-
-const attachMenu =
-document.getElementById("attachMenu");
-
-const filePicker =
-document.getElementById("filePicker");
-
-const cameraAttach =
-document.getElementById("cameraAttach");
-
-const galleryAttach =
-document.getElementById("galleryAttach");
-
-const pdfAttach =
-document.getElementById("pdfAttach");
-
-const fileAttach =
-document.getElementById("fileAttach");
-
-// ================= QUIZ =================
-
-// ================= QUIZ VARIABLES =================
-
-const generateQuizBtn = document.getElementById("generateQuizBtn");
-
-const quizTopic = document.getElementById("quizTopic");
-
-const quizClass = document.getElementById("quizClass");
-
-const quizSubject = document.getElementById("quizSubject");
-
-const quizDifficulty = document.getElementById("quizDifficulty");
-
-const questionCount = document.getElementById("questionCount");
-
-const quizResult = document.getElementById("quizResult");
-
-
-
-
-
-const quizSection = document.getElementById("quizSection");
-
-
-
-
-
-
-// ================= CAMERA =================
-
-const cameraBtn = document.getElementById("cameraBtn");
-console.log("cameraBtn =", cameraBtn);
-const cameraSection = document.getElementById("cameraSection");
-const cameraVideo = document.getElementById("cameraVideo");
-const openCameraBtn = document.getElementById("openCameraBtn");
-const captureBtn = document.getElementById("captureBtn");
-const capturedImage = document.getElementById("capturedImage");
-
-const analyzeImageBtn =
-document.getElementById("analyzeImageBtn");
-
-const cameraResult =
-document.getElementById("cameraResult");
-
-
-// ================= ATTACH MENU =================
-
-if (attachBtn) {
-
-    attachBtn.onclick = () => {
-
-        attachMenu.style.display =
-            attachMenu.style.display === "block"
-                ? "none"
-                : "block";
-
-    };
-
-}
-
-
-// ================= GALLERY =================
-
-if (galleryAttach) {
-
-    galleryAttach.onclick = () => {
-
-        attachMenu.style.display = "none";
-
-        filePicker.accept = "image/*";
-
-        filePicker.click();
-
-    };
-
-}
-
-
-/* ================= CHAT HISTORY ================= */
-
-
-const historyBtn =
-document.getElementById("historyBtn");
-
-
-const historyPanel =
-document.getElementById("historyPanel");
-
-
-const closeHistory =
-document.getElementById("closeHistory");
-
-if (closeHistory) {
-
-    closeHistory.onclick = () => {
-
-        console.log("❌ History Closed");
-
-        historyPanel.classList.remove("active");
-
-        showSection("chat");
-
-    };
-
-}
-
-const historyList =
-document.getElementById("historyList");
-
-
-const newChatBtn =
-document.getElementById("newChatBtn");
-
-
-
-let chats =
-JSON.parse(localStorage.getItem("chatHistory")) || [];
-
-
-
-
-if(historyBtn){
-
-    historyBtn.onclick=()=>{
-
-        showSection("history");
-
-    };
-
-}
-
-
-
-
-if(newChatBtn){
-
-newChatBtn.onclick=()=>{
-
-
-chatBox.innerHTML="";
-
-
-};
-
-}
-
-
-
-
-function saveChat(text){
-
-
-chats.unshift({
-time:new Date().toLocaleString(),
-
-text:text
-
-
-});
-
-
-localStorage.setItem(
-
-"chatHistory",
-
-JSON.stringify(chats)
-
-);
-
-
-}
-
-
-function loadHistory() {
-
-    historyList.innerHTML = "";
-
-    chats.forEach(chat => {
-
-        let div = document.createElement("div");
-        div.className = "history-item";
-
-        // Safe text
-        let preview = "";
-
-        if (typeof chat.text === "string") {
-            preview = chat.text.substring(0, 80);
-        } else if (Array.isArray(chat.text)) {
-            preview = chat.text.join(" ").substring(0, 80);
+document.addEventListener("DOMContentLoaded", () => {
+    // Elements Selection
+    const sidebar = document.getElementById("sidebar");
+    const toggleSidebarBtn = document.getElementById("toggleSidebarBtn");
+    const closeSidebarBtn = document.getElementById("closeSidebarBtn");
+    const sidebarOverlay = document.getElementById("sidebarOverlay");
+
+    const logoModal = document.getElementById("logoModal");
+    const closeLogoModal = document.getElementById("closeLogoModal");
+    const clickableLogos = document.querySelectorAll(".clickable-logo");
+
+    const chatForm = document.getElementById("chatForm");
+    const userInput = document.getElementById("userInput");
+    const messagesContainer = document.getElementById("messagesContainer");
+
+    const plusBtn = document.getElementById("plusBtn");
+    const plusMenu = document.getElementById("plusMenu");
+    const menuCameraBtn = document.getElementById("menuCameraBtn");
+    const menuGalleryBtn = document.getElementById("menuGalleryBtn");
+    const menuFileBtn = document.getElementById("menuFileBtn");
+    const menuGenBtn = document.getElementById("menuGenBtn");
+
+    const fileInput = document.getElementById("fileInput");
+    const galleryInput = document.getElementById("galleryInput");
+    const filePreviewBar = document.getElementById("filePreviewBar");
+    const previewFileName = document.getElementById("previewFileName");
+    const removeFileBtn = document.getElementById("removeFileBtn");
+
+    const micBtn = document.getElementById("micBtn");
+    const openMathSolverBtn = document.getElementById("openMathSolverBtn");
+    const openPdfReaderBtn = document.getElementById("openPdfReaderBtn");
+    const openQuizModalBtn = document.getElementById("openQuizModalBtn");
+    const quizModal = document.getElementById("quizModal");
+    const closeQuizModalBtn = document.getElementById("closeQuizModalBtn");
+    const submitQuizBtn = document.getElementById("submitQuizBtn");
+
+    const cameraModal = document.getElementById("cameraModal");
+    const closeCameraModalBtn = document.getElementById("closeCameraModalBtn");
+    const webcam = document.getElementById("webcam");
+    const cameraCanvas = document.getElementById("cameraCanvas");
+    const captureBtn = document.getElementById("captureBtn");
+    const switchCameraBtn = document.getElementById("switchCameraBtn");
+
+    // 💪 Fitness Modal Elements
+    const openFitnessModalBtn = document.getElementById("openFitnessModalBtn");
+    const fitnessModal = document.getElementById("fitnessModal");
+    const closeFitnessModalBtn = document.getElementById("closeFitnessModalBtn");
+    const submitFitnessBtn = document.getElementById("submitFitnessBtn");
+
+    // 🍎 Food & Fruit Scanner Elements
+    const openFoodDetectorBtn = document.getElementById('openFoodDetectorBtn');
+    const foodModal = document.getElementById('foodModal');
+    const closeFoodModalBtn = document.getElementById('closeFoodModalBtn');
+    const submitFoodBtn = document.getElementById('submitFoodBtn');
+
+    // 🎂 Age Calculator Elements
+    const openAgeModalBtn = document.getElementById('openAgeModalBtn');
+    const ageModal = document.getElementById('ageModal');
+    const closeAgeModalBtn = document.getElementById('closeAgeModalBtn');
+    const submitAgeBtn = document.getElementById('submitAgeBtn');
+
+    // 🧮 Smart Voice Calculator Elements
+    const openSmartCalcBtn = document.getElementById('openSmartCalcBtn');
+    const smartCalcModal = document.getElementById('smartCalcModal');
+    const closeSmartCalcBtn = document.getElementById('closeSmartCalcBtn');
+    const calcDisplay = document.getElementById('calcDisplay');
+    const calcKeypad = document.getElementById('calcKeypad');
+    const voiceCalcBtn = document.getElementById('voiceCalcBtn');
+
+    let activeStream = null;
+    let selectedFile = null;
+    let currentFacingMode = "environment";
+    
+    // 🧠 ચેટ મેમરી
+    let conversationHistory = [];
+
+    // 🔊 સ્પીચ વોઈસ લોડર
+    if ('speechSynthesis' in window) {
+        window.speechSynthesis.onvoiceschanged = () => {
+            window.speechSynthesis.getVoices();
+        };
+    }
+
+    // 1. Sidebar Toggle Logic
+    function toggleSidebar() {
+        if (!sidebar) return;
+        if (window.innerWidth <= 768) {
+            sidebar.classList.toggle("active");
+            if (sidebarOverlay) sidebarOverlay.classList.toggle("active");
         } else {
-            preview = JSON.stringify(chat.text).substring(0, 80);
+            sidebar.classList.toggle("closed");
         }
-
-        div.innerHTML = `
-            <b>${chat.time || ""}</b>
-            <br><br>
-            ${preview}...
-        `;
-
-        div.onclick = () => {
-            chatBox.innerHTML =
-                typeof chat.text === "string"
-                    ? chat.text
-                    : JSON.stringify(chat.text, null, 2);
-
-            historyPanel.classList.remove("active");
-        };
-
-        historyList.appendChild(div);
-
-    });
-
-}
-
-
-
-/* ================= VOICE ================= */
-
-const SpeechRecognition =
-    window.SpeechRecognition ||
-    window.webkitSpeechRecognition;
-
-if (SpeechRecognition){
-
-    const recognition = new SpeechRecognition();
-
-    recognition.lang = "gu-IN";
-
-    recognition.continuous = false;
-
-    if (micBtn) {
-
-        micBtn.onclick = () => {
-
-            recognition.start();
-
-        };
-
     }
 
-    recognition.onresult = (event) => {
-
-        userInput.value =
-            event.results[0][0].transcript;
-
-        if (typeof sendMessage === "function") {
-            sendMessage();
-        }
-
-    };
-//
-
-}
-
-/* ================= TEXT TO SPEECH ================= */
-
-
-
-function speak(text){
-
-
-if(!window.speechSynthesis)
-
-return;
-
-
-let speech =
-
-new SpeechSynthesisUtterance(text);
-
-
-speech.lang="gu-IN";
-
-
-speech.rate=1;
-
-
-
-window.speechSynthesis.speak(speech);
-
-
-
-}
-
-// ======================================================
-// SHOW ONLY ONE SECTION
-// ======================================================
-
-function showSection(section){
-
-    if(container) container.style.display="none";
-
-    if(pdfSection) pdfSection.style.display="none";
-
-    if(imageGenerator) imageGenerator.style.display="none";
-
-    if(cameraSection) cameraSection.style.display="none";
-
-    if(quizSection) quizSection.style.display="none";
-
-    if(historyPanel)
-        historyPanel.classList.remove("active");
-
-    switch(section){
-
-        case "chat":
-
-            container.style.display="flex";
-
-        break;
-
-        case "camera":
-
-            cameraSection.style.display="block";
-
-        break;
-
-        case "pdf":
-
-            pdfSection.style.display="block";
-
-        break;
-
-        case "image":
-
-            imageGenerator.style.display="block";
-
-        break;
-
-        case "quiz":
-
-            quizSection.style.display="block";
-
-        break;
-
-        case "history":
-
-            loadHistory();
-
-            historyPanel.classList.add("active");
-
-        break;
-
-    }
-
-    sidebar.classList.remove("active");
-
-}
-
-// ================= CAMERA CLOSE =================
-
-if (closeCameraBtn) {
-
-    closeCameraBtn.onclick = () => {
-
-        // Camera stream બંધ કરો
-        if (cameraStream) {
-
-            cameraStream.getTracks().forEach(track => track.stop());
-
-            cameraStream = null;
-
-        }
-
-        if (cameraVideo) {
-
-            cameraVideo.srcObject = null;
-
-        }
-
-        // Camera બંધ કરીને Chat પર જાઓ
-        showSection("chat");
-
-    };
-
-}
-
-/* ================= IMAGE CREATOR ================= */
-
-
-if(imageCreatorBtn){
-
-    imageCreatorBtn.onclick=()=>{
-
-        showSection("image");
-
-    };
-
-}
-
-
-/* ================= PDF ASSISTANT ================= */
-
-if(pdfBtn){
-
-    pdfBtn.onclick=()=>{
-
-        showSection("pdf");
-
-    };
-
-}
-
-
-/* ================= CAMERA AI ================= */
-
-if(cameraBtn){
-
-    cameraBtn.onclick=()=>{
-
-        currentFeature = "camera";
-
-        console.log("📷 Camera Mode");
-
-        showSection("camera");
-
-    };
-
-}
-
-//
-
-// ================= AI FEATURE MODE =================
-
-const aiFeatures = document.querySelectorAll(".ai-feature");
-
-aiFeatures.forEach((button) => {
-
-    button.addEventListener("click", () => {
-
-        currentFeature = button.dataset.feature;
-
-        console.log("Current Feature:", currentFeature);
-
-    });
-
-});
-
-let cameraStream = null;
-let facingMode = "environment"; // Default = Back Camera
-
-async function startCamera() {
-
-    console.log("✅ startCamera() called");
-
-    try {
-
-        if (cameraStream) {
-            cameraStream.getTracks().forEach(track => track.stop());
-        }
-
-        cameraStream = await navigator.mediaDevices.getUserMedia({
-
-            video: {
-                facingMode: facingMode
+    if (toggleSidebarBtn) toggleSidebarBtn.addEventListener("click", toggleSidebar);
+    if (closeSidebarBtn) closeSidebarBtn.addEventListener("click", toggleSidebar);
+    if (sidebarOverlay) sidebarOverlay.addEventListener("click", toggleSidebar);
+
+    // ➕ નવી ચેટ શરૂ કરવાનો બટન
+    const newChatBtn = document.getElementById("newChatBtn") || document.querySelector(".new-chat-btn");
+    
+    if (newChatBtn) {
+        newChatBtn.addEventListener("click", () => {
+            conversationHistory = [];
+
+            if (messagesContainer) {
+                messagesContainer.innerHTML = `
+                    <div class="message assistant-message">
+                        <div class="message-content">
+                            🌟 <b>નમસ્તે! Sarkar Smart AI માં તમારું હાર્દિક સ્વાગત છે!</b><br><br>તમે શૈક્ષણિક પ્રશ્નો, ગીતો, કવિતાઓ, પાઠો અને લાઈવ સમાચાર મેળવી શકો છો. 
+                            <div class="message-source-note" style="font-size: 11px; opacity: 0.85; margin-top: 10px; border-top: 1px dashed rgba(255,255,255,0.3); padding-top: 6px;">[Source: GCERT/NCERT Educational & Official Assistant]</div>
+                        </div>
+                    </div>
+                `;
             }
 
+            if (userInput) userInput.value = "";
+            if (removeFileBtn) removeFileBtn.click();
+
+            if (window.innerWidth <= 768 && sidebar && sidebar.classList.contains("active")) {
+                toggleSidebar();
+            }
         });
-
-        cameraVideo.srcObject = cameraStream;
-
-        cameraVideo.style.display = "block";
-
-capturedImage.style.display = "none";
-
-capturedImage.src = "";
-
-cameraResult.innerHTML = "";
-
-cameraPrompt.value = "";
-
     }
 
-    catch (err) {
-
-        console.error(err);
-
-        alert("Camera permission denied.");
-
+    // 2. Logo Zoom Modal
+    clickableLogos.forEach(logo => {
+        logo.addEventListener("click", () => {
+            if (logoModal) logoModal.classList.remove("hidden");
+        });
+    });
+    if (closeLogoModal && logoModal) {
+        closeLogoModal.addEventListener("click", () => logoModal.classList.add("hidden"));
     }
 
-}
+    // 3. Plus Menu Toggle Action
+    if (plusBtn) {
+        plusBtn.addEventListener("click", (e) => {
+            e.stopPropagation();
+            if (plusMenu) plusMenu.classList.toggle("hidden");
+        });
+    }
 
-// Open Camera
-
-if (openCameraBtn) {
-
-    openCameraBtn.onclick = async () => {
-
-        console.log("📷 Camera button clicked");
-
-        alert("Open Camera Button Clicked");
-
-        await startCamera();
-
-    };
-
-}
-
-// Switch Camera
-
-const switchCameraBtn =
-document.getElementById("switchCameraBtn");
-
-if (switchCameraBtn) {
-
-    switchCameraBtn.onclick = () => {
-
-        facingMode =
-        facingMode === "environment"
-        ? "user"
-        : "environment";
-
-        startCamera();
-
-    };
-
-}
-
-// Capture
-
-if (captureBtn) {
-
-    captureBtn.onclick = () => {
-
-        const canvas =
-        document.getElementById("cameraCanvas");
-
-        canvas.width = cameraVideo.videoWidth;
-        canvas.height = cameraVideo.videoHeight;
-
-        const ctx =
-        canvas.getContext("2d");
-
-        ctx.drawImage(
-            cameraVideo,
-            0,
-            0
-        );
-
-        capturedImage.src =
-        canvas.toDataURL("image/png");
-
-        currentCapturedImage = capturedImage.src;
-
-        capturedImage.style.display = "block";
-
-        if (cameraStream) {
-
-            cameraStream.getTracks().forEach(track => track.stop());
-
-            cameraVideo.srcObject = null;
-
+    document.addEventListener("click", (e) => {
+        if (plusMenu && !plusMenu.contains(e.target) && plusBtn && !plusBtn.contains(e.target)) {
+            plusMenu.classList.add("hidden");
         }
+    });
 
-    };
+    // 4. File / Image Attachment Selection
+    if (menuFileBtn && fileInput) menuFileBtn.addEventListener("click", () => fileInput.click());
+    if (menuGalleryBtn && galleryInput) menuGalleryBtn.addEventListener("click", () => galleryInput.click());
+    if (openPdfReaderBtn && fileInput) openPdfReaderBtn.addEventListener("click", () => fileInput.click());
 
-}
+    if (fileInput) fileInput.addEventListener("change", handleFileSelection);
+    if (galleryInput) galleryInput.addEventListener("change", handleFileSelection);
 
-// Analyze
-
-if (analyzeImageBtn) {
-
-    analyzeImageBtn.onclick = async () => {
-
-        if (!capturedImage.src) {
-
-            alert("Please capture an image first.");
-
-            return;
-
+    function handleFileSelection(e) {
+        if (e.target.files && e.target.files.length > 0) {
+            selectedFile = e.target.files[0];
+            if (previewFileName) previewFileName.textContent = `📎 પસંદ કરેલી ફાઈલ: ${selectedFile.name}`;
+            if (filePreviewBar) filePreviewBar.classList.remove("hidden");
         }
+    }
 
-        cameraResult.innerHTML =
-        "🤖 Analyzing image...";
+    if (removeFileBtn) {
+        removeFileBtn.addEventListener("click", () => {
+            selectedFile = null;
+            if (fileInput) fileInput.value = "";
+            if (galleryInput) galleryInput.value = "";
+            if (filePreviewBar) filePreviewBar.classList.add("hidden");
+        });
+    }
 
-        const prompt =
-        document.getElementById("cameraPrompt")?.value || "";
-
+    // 5. Camera & Scanner Operations
+    async function startCamera() {
         try {
+            if (cameraCanvas) {
+                const ctx = cameraCanvas.getContext("2d");
+                ctx.clearRect(0, 0, cameraCanvas.width, cameraCanvas.height);
+                cameraCanvas.style.display = "none";
+            }
 
-            const response =
-            await fetch("/analyze-image", {
+            if (webcam) {
+                webcam.style.display = "block";
+            }
 
-                method: "POST",
-
-                headers: {
-                    "Content-Type": "application/json"
-                },
-
-                body: JSON.stringify({
-
-                    image: capturedImage.src,
-
-                    prompt: prompt
-
-                })
-
+            if (activeStream) {
+                activeStream.getTracks().forEach(track => track.stop());
+            }
+            activeStream = await navigator.mediaDevices.getUserMedia({
+                video: { facingMode: currentFacingMode }
             });
-
-            const data =
-            await response.json();
-
-            cameraResult.innerHTML = `
-<div class="bot-message">
-    🤖 ${data.reply}
-</div>
-
-<div class="camera-chat-box">
-
-    <input
-        type="text"
-        id="cameraChatInput"
-        placeholder="Ask anything about this image..."
-    >
-
-    <button id="cameraSendBtn">
-        Send
-    </button>
-
-</div>
-`;
-
-document.getElementById("cameraSendBtn").onclick = sendCameraMessage;
-
-      }  catch (err) {
-
-            console.error(err);
-
-            cameraResult.innerHTML =
-            "❌ Unable to analyze image.";
-
-        }
-
-    };
-
-}
-
-
-// ================= QUIZ GENERATOR =================
-
-
-/* ================= AI CHAT ================= */
-
-if(chatBtn){
-
-    chatBtn.onclick=()=>{
-
-        showSection("chat");
-
-        container.scrollIntoView({
-
-            behavior:"smooth"
-
-        });
-
-    };
-
-}
-
-
-if (readPdfBtn) {
-
-    readPdfBtn.onclick = async () => {
-
-        const file = pdfFile.files[0];
-
-        if (!file) {
-            alert("Please select a PDF file.");
-            return;
-        }
-
-        pdfResult.innerHTML = "📖 Reading PDF...";
-
-        try {
-
-            const text = await readPDF(file);
-
-// Clean PDF Text
-const cleaned = text
-
-    .replace(/\n\s*\n/g, "\n")
-    .replace(/•\s*\n\s*/g, "• ")
-    .replace(/:\s*\n\s*/g, ": ")
-    .replace(/[ \t]+/g, " ")
-    .trim();
-
-currentPdfText = cleaned;
-
-const words = cleaned.trim().split(/\s+/).length;
-const chars = cleaned.length;
-
-const preview = cleaned.substring(0, 3000);
-
-pdfResult.innerHTML = `
-    <div class="pdf-info">
-
-        <h3>📄 ${file.name}</h3>
-
-        <p><b>Characters:</b> ${chars.toLocaleString()}</p>
-
-        <p><b>Words:</b> ${words.toLocaleString()}</p>
-
-        <hr>
-
-        <h4>Preview</h4>
-
-        <div class="pdf-preview">
-
-            ${preview.replace(/\n/g,"<br>")}
-
-        </div>
-
-    </div>
-`;
-
+            if (webcam) webcam.srcObject = activeStream;
+            if (cameraModal) cameraModal.classList.remove("hidden");
         } catch (err) {
-
-            console.error(err);
-
-            pdfResult.innerHTML =
-                "❌ Unable to read PDF.";
-
+            console.error("Camera Error:", err);
+            alert("⚠️ કેમેરાનો એક્સેસ મળી શક્યો નથી. પરમિશન ચકાસો.");
         }
-
-    };
-
-}
-
-
-
-window.regenerateMessage = function () {
-
-    if (!lastUserMessage) {
-        alert("No previous message found.");
-        return;
     }
 
-    userInput.value = lastUserMessage;
+    function stopCamera() {
+        if (activeStream) {
+            activeStream.getTracks().forEach(track => track.stop());
+            activeStream = null;
+        }
+        if (cameraModal) cameraModal.classList.add("hidden");
+    }
 
-    sendMessage();
+    if (menuCameraBtn) {
+        menuCameraBtn.addEventListener("click", () => {
+            if (plusMenu) plusMenu.classList.add("hidden");
+            startCamera();
+        });
+    }
 
-};
+    if (openMathSolverBtn) openMathSolverBtn.addEventListener("click", startCamera);
+    if (closeCameraModalBtn) closeCameraModalBtn.addEventListener("click", stopCamera);
 
-window.dislikeResponse = function (answer) {
+    if (switchCameraBtn) {
+        switchCameraBtn.addEventListener("click", () => {
+            currentFacingMode = (currentFacingMode === "user") ? "environment" : "user";
+            startCamera();
+        });
+    }
 
-    addBotMessage(
-        chatBox,
-        "🙏 Thank you for your feedback. I'll try to provide a better answer next time."
-    );
+    if (captureBtn) {
+        captureBtn.addEventListener("click", async () => {
+            if (!cameraCanvas || !webcam) return;
+            const ctx = cameraCanvas.getContext("2d");
+            cameraCanvas.width = webcam.videoWidth;
+            cameraCanvas.height = webcam.videoHeight;
+            ctx.drawImage(webcam, 0, 0);
 
-};
+            webcam.style.display = "none";
+            cameraCanvas.style.display = "block";
 
+            const base64Image = cameraCanvas.toDataURL("image/jpeg");
+            stopCamera();
 
-// ================= GENERATE QUIZ =================
+            appendMessage("📷 [કેમેરા સ્કેનર]: ગણિતના દાખલાનું વિશ્લેષણ અને સોલ્યુશન મેળવવામાં આવી રહ્યું છે...", "user-message");
+            const loadingDiv = appendMessage("🔄 AI સોલ્યુશન તૈયાર થઈ રહ્યું છે...", "assistant-message");
 
-if (generateQuizBtn) {
+            try {
+                const res = await fetch("/api/chat", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        message: "આ ગણિતના દાખલાને સ્ટેપ-બાય-સ્ટેપ ઉકેલીને સમજાવો.",
+                        imageBase64: base64Image,
+                        history: conversationHistory
+                    })
+                });
 
-    generateQuizBtn.onclick = async () => {
+                const data = await res.json();
+                if (loadingDiv) loadingDiv.remove();
+                const replyText = data.reply || "⚠️ સોલ્યુશન મેળવવામાં ભૂલ થઈ. [Source: GCERT/NCERT Educational Assistant]";
+                appendMessage(replyText, "assistant-message");
 
-        const topic = quizTopic.value.trim();
+                conversationHistory.push({ role: "user", parts: [{ text: "[કેમેરા સ્કેનરથી મેથ્સ સોલ્યુશન માટે ફોટો અપલોડ કર્યો]" }] });
+                conversationHistory.push({ role: "model", parts: [{ text: replyText }] });
 
-        if (!topic) {
-            alert("Please enter a topic.");
+            } catch (err) {
+                if (loadingDiv) loadingDiv.remove();
+                appendMessage("⚠️ સર્વર પ્રોસેસિંગમાં તકલીફ થઈ. [Source: System]", "assistant-message");
+            }
+        });
+    }
+
+    // 6. Voice Input (Speech Recognition)
+    if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        const recognition = new SpeechRecognition();
+        recognition.lang = 'gu-IN';
+
+        if (micBtn) {
+            micBtn.addEventListener("click", () => {
+                try {
+                    recognition.start();
+                    micBtn.style.color = "#ff4d4d";
+                } catch (e) {
+                    console.error("Speech Recognition Error:", e);
+                }
+            });
+        }
+
+        recognition.onresult = (e) => {
+            if (userInput) userInput.value = e.results[0][0].transcript;
+            if (micBtn) micBtn.style.color = "var(--accent-color)";
+        };
+
+        recognition.onerror = () => { if (micBtn) micBtn.style.color = "var(--accent-color)"; };
+        recognition.onend = () => { if (micBtn) micBtn.style.color = "var(--accent-color)"; };
+    }
+
+    // 7. Image/Poster Prompt Shortcut
+    if (menuGenBtn) {
+        menuGenBtn.addEventListener("click", () => {
+            if (userInput) {
+                userInput.value = "એક મોટિવેશનલ કે ફેસ્ટિવલ પોસ્ટર જનરેટ કરી આપો: ";
+                userInput.focus();
+            }
+        });
+    }
+
+    // 8. Quiz Generation Modal Handlers
+    if (openQuizModalBtn && quizModal) openQuizModalBtn.addEventListener("click", () => quizModal.classList.remove("hidden"));
+    if (closeQuizModalBtn && quizModal) closeQuizModalBtn.addEventListener("click", () => quizModal.classList.add("hidden"));
+
+    if (submitQuizBtn) {
+        submitQuizBtn.addEventListener("click", async () => {
+            const std = document.getElementById("quizStd")?.value || "General";
+            const subject = document.getElementById("quizSubject")?.value || "GK";
+            const chapter = document.getElementById("quizChapter")?.value || "General";
+            const marks = document.getElementById("quizMarks")?.value || 5;
+
+            const types = [];
+            if (document.getElementById("typeMcq")?.checked) types.push("MCQ");
+            if (document.getElementById("typeBlank")?.checked) types.push("ખાલી જગ્યા");
+            if (document.getElementById("typeShort")?.checked) types.push("ટૂંકા પ્રશ્નો");
+            if (document.getElementById("typeLong")?.checked) types.push("લાંબા પ્રશ્નો");
+
+            if (quizModal) quizModal.classList.add("hidden");
+            appendMessage(`📝 ક્વિઝ રિક્વેસ્ટ: ધોરણ ${std} | વિષય ${subject} | પ્રકરણ ${chapter} (${marks} ગુણ)`, "user-message");
+
+            try {
+                const res = await fetch("/api/generate-quiz", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ std, subject, chapter, totalMarks: marks, questionTypes: types })
+                });
+                const data = await res.json();
+                appendMessage(data.reply, "assistant-message");
+            } catch (err) {
+                appendMessage("⚠️ ક્વિઝ જનરેટ કરવામાં તકલીફ થઈ છે. [Source: GCERT/NCERT Curriculum]", "assistant-message");
+            }
+        });
+    }
+
+    // 💪 9. Health & Fitness Modal Handlers
+    if (openFitnessModalBtn && fitnessModal) {
+        openFitnessModalBtn.addEventListener("click", () => fitnessModal.classList.remove("hidden"));
+    }
+    if (closeFitnessModalBtn && fitnessModal) {
+        closeFitnessModalBtn.addEventListener("click", () => fitnessModal.classList.add("hidden"));
+    }
+
+    if (submitFitnessBtn) {
+        submitFitnessBtn.addEventListener("click", async () => {
+            const gender = document.getElementById("fitGender")?.value || "Male";
+            const age = document.getElementById("fitAge")?.value || "25";
+            const height = document.getElementById("fitHeight")?.value || "170";
+            const weight = document.getElementById("fitWeight")?.value || "65";
+            const activity = document.getElementById("fitActivity")?.value || "Moderate";
+
+            if (fitnessModal) fitnessModal.classList.add("hidden");
+            appendMessage(`💪 ફિટનેસ રિપોર્ટ રિક્વેસ્ટ: ઉંમર ${age} વર્ષ | ઊંચાઈ ${height} સેમી | વજન ${weight} કિલો`, "user-message");
+            const loadingDiv = appendMessage("🔄 તમારો ફિટનેસ રિપોર્ટ તૈયાર થઈ રહ્યો છે...", "assistant-message");
+
+            try {
+                const res = await fetch("/api/calculate-fitness", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ gender, age, height, weight, activity })
+                });
+                const data = await res.json();
+                if (loadingDiv) loadingDiv.remove();
+                appendMessage(data.reply || "⚠️ ફિટનેસ રિપોર્ટ મેળવવામાં ભૂલ થઈ. [Source: Fitness System]", "assistant-message");
+            } catch (err) {
+                if (loadingDiv) loadingDiv.remove();
+                appendMessage("⚠️ ફિટનેસ રિપોર્ટ જનરેટ કરવામાં સર્વર એરર આવી છે. [Source: Fitness System]", "assistant-message");
+            }
+        });
+    }
+
+    // 🍎 10. Food & Fruit Scanner Modal Logic
+    if (openFoodDetectorBtn && foodModal) {
+        openFoodDetectorBtn.addEventListener('click', () => {
+            foodModal.classList.remove('hidden');
+            if (sidebar) sidebar.classList.remove('active');
+            if (sidebarOverlay) sidebarOverlay.classList.remove('active');
+        });
+    }
+
+    if (closeFoodModalBtn && foodModal) {
+        closeFoodModalBtn.addEventListener('click', () => {
+            foodModal.classList.add('hidden');
+        });
+    }
+
+    if (submitFoodBtn) {
+        submitFoodBtn.addEventListener('click', async () => {
+            const foodImageInput = document.getElementById('foodImageInput');
+            const commentInput = document.getElementById('foodComment');
+
+            if (!foodImageInput || foodImageInput.files.length === 0) {
+                alert('⚠️ કૃપા કરીને પહેલા કોઈ ખાદ્ય પદાર્થ કે ફળનો ફોટો પસંદ કરો.');
+                return;
+            }
+
+            const file = foodImageInput.files[0];
+            const comment = commentInput ? commentInput.value : "આ ફોટામાં શું શું છે તે જણાવો.";
+
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            
+            reader.onload = async () => {
+                const base64String = reader.result;
+
+                if (foodModal) foodModal.classList.add('hidden');
+
+                const userMsgDiv = document.createElement('div');
+                userMsgDiv.className = 'message user-message';
+                userMsgDiv.innerHTML = `<div class="message-content">🖼️ [ફૂડ/ફ્રૂટ ફોટો સ્કેન માટે મોકલ્યો છે]<br><img src="${base64String}" style="max-width:200px; border-radius:8px; margin-top:8px;"></div>`;
+                messagesContainer.appendChild(userMsgDiv);
+
+                const loadingDiv = document.createElement('div');
+                loadingDiv.className = 'message assistant-message';
+                loadingDiv.id = 'tempLoadingMsg';
+                loadingDiv.innerHTML = `<div class="message-content">⏳ AI ફોટો સ્કેન કરી રહ્યું છે, કૃપા કરીને રાહ જુઓ...</div>`;
+                messagesContainer.appendChild(loadingDiv);
+                messagesContainer.scrollTop = messagesContainer.scrollHeight;
+
+                try {
+                    const response = await fetch('/api/detect-food', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            imageBase64: base64String,
+                            comment: comment
+                        })
+                    });
+
+                    const data = await response.json();
+                    
+                    const tempMsg = document.getElementById('tempLoadingMsg');
+                    if (tempMsg) tempMsg.remove();
+
+                    const aiMsgDiv = document.createElement('div');
+                    aiMsgDiv.className = 'message assistant-message';
+                    aiMsgDiv.innerHTML = `<div class="message-content">${(data && data.reply) ? data.reply.replace(/\n/g, '<br>') : "⚠️ જવાબ મળ્યો નથી."}</div>`;
+                    messagesContainer.appendChild(aiMsgDiv);
+                    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+
+                } catch (error) {
+                    console.error("Food API Error:", error);
+                    const tempMsg = document.getElementById('tempLoadingMsg');
+                    if (tempMsg) tempMsg.remove();
+                    alert('⚠️ સર્વર સાથે કનેક્ટ કરવામાં એરર આવી.');
+                }
+            };
+        });
+    }
+
+    // 🎂 11. Age Calculator Modal Logic
+    if (openAgeModalBtn && ageModal) {
+        openAgeModalBtn.addEventListener('click', () => {
+            ageModal.classList.remove('hidden');
+            
+            const today = new Date();
+            const tDay = document.getElementById('targetDay');
+            const tMonth = document.getElementById('targetMonth');
+            const tYear = document.getElementById('targetYear');
+
+            if (tDay) tDay.value = today.getDate();
+            if (tMonth) tMonth.value = today.getMonth() + 1;
+            if (tYear) tYear.value = today.getFullYear();
+
+            if (sidebar) sidebar.classList.remove('active');
+            if (sidebarOverlay) sidebarOverlay.classList.remove('active');
+        });
+    }
+
+    if (closeAgeModalBtn && ageModal) {
+        closeAgeModalBtn.addEventListener('click', () => {
+            ageModal.classList.add('hidden');
+        });
+    }
+
+    if (submitAgeBtn) {
+        submitAgeBtn.addEventListener('click', () => {
+            const bD = document.getElementById('birthDay').value;
+            const bM = document.getElementById('birthMonth').value;
+            const bY = document.getElementById('birthYear').value;
+
+            const tD = document.getElementById('targetDay').value;
+            const tM = document.getElementById('targetMonth').value;
+            const tY = document.getElementById('targetYear').value;
+
+            if (!bD || !bM || !bY) {
+                alert('⚠️ કૃપા કરીને તમારી સંપૂર્ણ જન્મતારીખ (તારીખ, મહિનો અને વર્ષ) પસંદ કરો.');
+                return;
+            }
+
+            if (!tD || !tM || !tY) {
+                alert('⚠️ કૃપા કરીને ટાર્ગેટ તારીખની તમામ વિગતો પસંદ કરો.');
+                return;
+            }
+
+            if (ageModal) ageModal.classList.add('hidden');
+
+            const bDate = new Date(bY, bM - 1, bD);
+            const tDate = new Date(tY, tM - 1, tD);
+
+            if (bDate > tDate) {
+                alert('⚠️ જન્મતારીખ, ટાર્ગેટ તારીખ કરતાં મોટી ન હોઈ શકે!');
+                return;
+            }
+
+            let years = tDate.getFullYear() - bDate.getFullYear();
+            let months = tDate.getMonth() - bDate.getMonth();
+            let days = tDate.getDate() - bDate.getDate();
+
+            if (days < 0) {
+                months--;
+                const prevMonth = new Date(tDate.getFullYear(), tDate.getMonth(), 0);
+                days += prevMonth.getDate();
+            }
+
+            if (months < 0) {
+                years--;
+                months += 12;
+            }
+
+            const diffTime = Math.abs(tDate - bDate);
+            const totalDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+
+            const replyText = `🌟 <b>તમારો વય (Age) રિપોર્ટ:</b><br><br>` +
+                              `👉 <b>ચોક્કસ ઉંમર:</b> ${years} વર્ષ, ${months} મહિના અને ${days} દિવસ<br>` +
+                              `⏳ <b>કુલ જીવેલા દિવસો:</b> આશરે ${totalDays.toLocaleString()} દિવસો<br>` +
+                              `[Source: Sarkar Smart AI System]`;
+
+            if (messagesContainer) {
+                const aiMsgDiv = document.createElement('div');
+                aiMsgDiv.className = 'message assistant-message';
+                aiMsgDiv.innerHTML = `<div class="message-content">${replyText}</div>`;
+                messagesContainer.appendChild(aiMsgDiv);
+                messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            }
+        });
+    }
+
+    // 🧮 12. Smart Voice Calculator Logic
+    if (openSmartCalcBtn && smartCalcModal) {
+        openSmartCalcBtn.addEventListener('click', () => {
+            smartCalcModal.classList.remove('hidden');
+            if (sidebar) sidebar.classList.remove('active');
+            if (sidebarOverlay) sidebarOverlay.classList.remove('active');
+        });
+    }
+
+    if (closeSmartCalcBtn && smartCalcModal) {
+        closeSmartCalcBtn.addEventListener('click', () => {
+            smartCalcModal.classList.add('hidden');
+        });
+    }
+
+    if (calcKeypad && calcDisplay) {
+        calcKeypad.addEventListener('click', (e) => {
+            const btn = e.target.closest('button');
+            if (!btn) return;
+
+            const action = btn.getAttribute('data-action') || btn.textContent.trim();
+
+            if (action === 'C' || btn.classList.contains('clear')) {
+                calcDisplay.value = '';
+            } else if (action === '=' || btn.classList.contains('equals')) {
+                try {
+                    // સુરક્ષિત ગણતરી માટે
+                    let expr = calcDisplay.value.replace(/×/g, '*').replace(/÷/g, '/');
+                    calcDisplay.value = eval(expr);
+                } catch (err) {
+                    calcDisplay.value = 'Error';
+                }
+            } else {
+                calcDisplay.value += action;
+            }
+        });
+    }
+
+    // સ્માર્ટ વોઈસ કેલ્ક્યુલેટર માટે માઈક/વોઈસ ઇનપુટ
+    if (voiceCalcBtn && calcDisplay) {
+        if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+            const CalcSpeech = window.SpeechRecognition || window.webkitSpeechRecognition;
+            const calcRec = new CalcSpeech();
+            calcRec.lang = 'gu-IN';
+
+            voiceCalcBtn.addEventListener('click', () => {
+                try {
+                    calcRec.start();
+                    voiceCalcBtn.style.color = '#ff4d4d';
+                } catch (e) {
+                    console.error(e);
+                }
+            });
+
+            calcRec.onresult = (e) => {
+                const speechText = e.results[0][0].transcript;
+                voiceCalcBtn.style.color = 'inherit';
+                
+                // અંક અથવા ગણતરી શબ્દોમાંથી મેળવવા માટે
+                calcDisplay.value = speechText;
+            };
+
+            calcRec.onerror = () => { voiceCalcBtn.style.color = 'inherit'; };
+            calcRec.onend = () => { voiceCalcBtn.style.color = 'inherit'; };
+        }
+    }
+
+    // 13. Main Chat Form Handler
+    if (chatForm) {
+        chatForm.addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const text = userInput ? userInput.value.trim() : "";
+            if (!text && !selectedFile) return;
+
+            let userMsgText = text;
+            if (selectedFile) {
+                userMsgText = `[ફાઈલ: ${selectedFile.name}] ${text}`;
+            }
+
+            appendMessage(userMsgText, "user-message");
+            if (userInput) userInput.value = "";
+
+            const lowerText = text.toLowerCase();
+            const isImageFile = selectedFile && selectedFile.type.startsWith("image/");
+            const isPdfFile = selectedFile && (selectedFile.type === "application/pdf" || selectedFile.name.toLowerCase().endsWith(".pdf"));
+            
+            const isImageGenKeyword = 
+                lowerText.includes("પોસ્ટર") || lowerText.includes("ઈમેજ") || lowerText.includes("ચિત્ર") || 
+                lowerText.includes("ફોટો") || lowerText.includes("પિક") || lowerText.includes("સીન") || 
+                lowerText.includes("image") || lowerText.includes("poster") || lowerText.includes("photo") || 
+                lowerText.includes("pic") || lowerText.includes("scene") || lowerText.includes("bnavi") || 
+                lowerText.includes("બનાવી") || lowerText.includes("દોરી") || lowerText.includes("બનાવી આપો");
+            
+            const isLiveNewsKeyword = lowerText.includes('news') || lowerText.includes('સમાચાર') || lowerText.includes('live news');
+            const isCricketKeyword = lowerText.includes('cricket') || lowerText.includes('score') || lowerText.includes('સ્કોર') || lowerText.includes('ક્રિકેટ');
+
+            const isEducationalOrMediaQuery = 
+                lowerText.includes("ગીત") || lowerText.includes("song") || lowerText.includes("કવિતા") || 
+                lowerText.includes("poem") || lowerText.includes("પ્રકરણ") || lowerText.includes("chapter") || 
+                lowerText.includes("પાઠ") || lowerText.includes("lesson") || lowerText.includes("શાળા") || 
+                lowerText.includes("education") || lowerText.includes("ધોરણ") || lowerText.includes("std");
+
+            if (isEducationalOrMediaQuery && !selectedFile && !isImageGenKeyword) {
+                const loadingDiv = appendMessage("📚 શૈક્ષણિક માહિતી અને સત્તાવાર વીડિયો લિંક શોધવામાં આવી રહી છે...", "assistant-message");
+
+                try {
+                    const enhancedPrompt = `તમે ગુજરાત સરકાર અને NCERT/GCERT ના સત્તાવાર શૈક્ષણિક સહાયક છો. યુઝરની માંગ મુજબ સચોટ માહિતી આપો. સવાલ: ${text}`;
+
+                    const res = await fetch("/api/chat", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ message: enhancedPrompt, history: conversationHistory })
+                    });
+
+                    const data = await res.json();
+                    if (loadingDiv) loadingDiv.remove();
+                    
+                    let replyText = data.reply || "⚠️ માહિતી મેળવવામાં ભૂલ થઈ.";
+                    
+                    const encodedQuery = encodeURIComponent(text + " GCERT official Gujarat");
+                    replyText += `<br><br>📺 <b>શૈક્ષણિક વીડિયો અને સામગ્રી માટે:</b><br>` +
+                                 `👉 <a href="https://www.youtube.com/results?search_query=${encodedQuery}" target="_blank" style="color: #00d2ff; text-decoration: underline;">YouTube પર સત્તાવાર વીડિયો જુઓ</a><br>` +
+                                 `<span style="font-size: 11px; opacity: 0.8;">[Source: GCERT / Education Department Gujarat Official Channels]</span>`;
+
+                    appendMessage(replyText, "assistant-message");
+                    conversationHistory.push({ role: "user", parts: [{ text: text }] });
+                    conversationHistory.push({ role: "model", parts: [{ text: replyText }] });
+
+                } catch (err) {
+                    if (loadingDiv) loadingDiv.remove();
+                    appendMessage(`⚠️ માહિતી મેળવવામાં તકલીફ થઈ. વધુ માહિતી માટે તમે <a href="https://www.youtube.com/results?search_query=GCERT+Gujarat" target="_blank" style="color: #00d2ff;">YouTube પર GCERT Gujarat</a> સર્ચ કરી શકો છો.`, "assistant-message");
+                }
+                return;
+            }
+
+            if ((isLiveNewsKeyword || isCricketKeyword) && !selectedFile && !isImageGenKeyword) {
+                const loadingDiv = appendMessage("📰/🏏 માહિતી મેળવવામાં આવી રહી છે...", "assistant-message");
+
+                try {
+                    let promptMsg = text;
+                    if (isCricketKeyword) {
+                        promptMsg = `હાલની ક્રિકેટ મેચ અથવા લાઈવ સ્કોર માટે [Cricbuzz](https://www.cricbuzz.com) અથવા [ESPNcricinfo](https://www.espncricinfo.com) પર મુલાકાત લો. સવાલ: ${text}`;
+                    }
+
+                    const res = await fetch("/api/chat", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ message: promptMsg, history: conversationHistory })
+                    });
+
+                    const data = await res.json();
+                    if (loadingDiv) loadingDiv.remove();
+                    
+                    const replyText = data.reply || "⚠️ માહિતી મેળવવામાં ભૂલ થઈ.";
+                    appendMessage(replyText, "assistant-message");
+                } catch (err) {
+                    if (loadingDiv) loadingDiv.remove();
+                    appendMessage(`🏏 લાઈવ સ્કોર અને અપડેટ્સ માટે તમે અહીં મુલાકાત લઈ શકો છો:<br>1. [Cricbuzz](https://www.cricbuzz.com)<br>2. [ESPNcricinfo](https://www.espncricinfo.com)`, "assistant-message");
+                }
+                return;
+            }
+
+            if (isImageFile && !isImageGenKeyword) {
+                const loadingDiv = appendMessage("🔄 ફોટો વિશ્લેષિત થઈ રહ્યો છે...", "assistant-message");
+                const reader = new FileReader();
+
+                reader.onload = async () => {
+                    try {
+                        const res = await fetch("/api/chat", {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({
+                                message: text || "આ ફોટા વિશે સમજાવો.",
+                                imageBase64: reader.result,
+                                history: conversationHistory
+                            })
+                        });
+
+                        const data = await res.json();
+                        if (loadingDiv) loadingDiv.remove();
+                        const replyText = data.reply || "⚠️ વિશ્લેષણમાં ભૂલ થઈ.";
+                        appendMessage(replyText, "assistant-message");
+
+                        conversationHistory.push({ role: "user", parts: [{ text: `[અપલોડ કરેલો ફોટો]: ${text}` }] });
+                        conversationHistory.push({ role: "model", parts: [{ text: replyText }] });
+
+                    } catch (err) {
+                        if (loadingDiv) loadingDiv.remove();
+                        appendMessage("⚠️ સર્વર પ્રોસેસિંગમાં તકલીફ થઈ.", "assistant-message");
+                    }
+                };
+                reader.readAsDataURL(selectedFile);
+                if (removeFileBtn) removeFileBtn.click();
+                return;
+            }
+
+            if (isImageGenKeyword) {
+                const loadingDiv = appendMessage("🔄 તમે માંગેલી છબી તૈયાર થઈ રહી છે...", "assistant-message");
+
+                try {
+                    const res = await fetch("/api/generate-image", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ prompt: text })
+                    });
+
+                    const data = await res.json();
+                    if (loadingDiv) loadingDiv.remove();
+
+                    if (data && data.imageUrl) {
+                        const msgDiv = document.createElement("div");
+                        msgDiv.className = "message assistant-message";
+                        
+                        const contentDiv = document.createElement("div");
+                        contentDiv.className = "message-content";
+                        contentDiv.innerHTML = `
+                            ✨ <b>તમારી માંગણી મુજબનો ફોટો/પોસ્ટર તૈયાર છે:</b><br><br>
+                            <img src="${data.imageUrl}" alt="${text}" style="max-width:100%; border-radius:12px; margin-top:8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); display:block;"><br>
+                            <a href="${data.imageUrl}" download="sarkar-ai-image.jpg" style="background: #28a745; color: white; padding: 6px 12px; border-radius: 6px; text-decoration: none; font-size: 13px; display: inline-flex; align-items: center; gap: 5px;">
+                                <i class="fa-solid fa-download"></i> ડાઉનલોડ કરો
+                            </a>
+                        `;
+                        msgDiv.appendChild(contentDiv);
+                        messagesContainer.appendChild(msgDiv);
+                        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+                    } else {
+                        appendMessage(data.reply || "⚠️ ઈમેજ જનરેટ કરવામાં મુશ્કેલી થઈ.", "assistant-message");
+                    }
+                } catch (err) {
+                    if (loadingDiv) loadingDiv.remove();
+                    appendMessage("⚠️ ફોટો પ્રોસેસ કરવામાં ભૂલ થઈ.", "assistant-message");
+                }
+                if (removeFileBtn) removeFileBtn.click();
+                return;
+            }
+
+            if (selectedFile && isPdfFile) {
+                const loadingDiv = appendMessage("🔄 ફાઈલનું વિશ્લેષણ થઈ રહ્યું છે...", "assistant-message");
+                
+                const formData = new FormData();
+                formData.append("pdfFile", selectedFile);
+                formData.append("comment", text || "આ ફાઈલનું પૃથ્થકરણ કરો.");
+
+                try {
+                    const res = await fetch("/api/analyze-pdf", {
+                        method: "POST",
+                        body: formData
+                    });
+                    const data = await res.json();
+                    if (loadingDiv) loadingDiv.remove();
+
+                    const replyText = data.reply || "⚠️ ફાઈલ વિશ્લેષણમાં ભૂલ થઈ.";
+                    appendMessage(replyText, "assistant-message");
+                } catch (err) {
+                    if (loadingDiv) loadingDiv.remove();
+                    appendMessage("⚠️ ફાઈલ પ્રોસેસ કરવામાં ભૂલ થઈ.", "assistant-message");
+                }
+                if (removeFileBtn) removeFileBtn.click();
+                return;
+            }
+
+            try {
+                conversationHistory.push({ role: "user", parts: [{ text: text }] });
+
+                const response = await fetch("/api/chat", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ 
+                        message: text,
+                        history: conversationHistory 
+                    })
+                });
+
+                const data = await response.json();
+                const replyText = data.reply || "જવાબ મળી રહ્યો છે...";
+
+                conversationHistory.push({ role: "model", parts: [{ text: replyText }] });
+
+                appendMessage(replyText, "assistant-message");
+            } catch (error) {
+                appendMessage("⚠️ સર્વર સાથે સંપર્ક થઈ શક્યો નથી.", "assistant-message");
+            }
+        });
+    }
+
+    // 🎯 Message Renderer
+    function appendMessage(text, className) {
+        if (!messagesContainer) return null;
+        const msgDiv = document.createElement("div");
+        msgDiv.className = `message ${className}`;
+
+        const contentDiv = document.createElement("div");
+        contentDiv.className = "message-content";
+
+        let cleanHtmlText = text
+            .replace(/###\s?/g, '')
+            .replace(/\*\*(.*?)\*\*/g, '<b>$1</b>')
+            .replace(/\*(.*?)\*/g, '<i>$1</i>');
+
+        cleanHtmlText = cleanHtmlText.replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g, '<a href="$2" target="_blank" style="color: #4da6ff; text-decoration: underline; font-weight: 500;">$1</a>');
+        cleanHtmlText = cleanHtmlText.replace(/\n/g, "<br>");
+
+        contentDiv.innerHTML = cleanHtmlText;
+
+        const isAssistant = className.includes("assistant-message");
+        const isLoadingMsg = text.includes("🔄") || text.includes("📰") || text.includes("🏏") || text.includes("⏳") || text.includes("📚");
+
+        if (isAssistant && !isLoadingMsg) {
+            const audioContainer = document.createElement("div");
+            audioContainer.style.marginTop = "10px";
+
+            const audioBtn = document.createElement("button");
+            audioBtn.className = "chat-audio-btn";
+            audioBtn.style.cssText = "display: inline-flex; align-items: center; gap: 5px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 6px; padding: 4px 8px; color: inherit; cursor: pointer; font-size: 12px;";
+            audioBtn.innerHTML = `<i class="fa-solid fa-volume-high"></i> સાંભળો`;
+            audioBtn.onclick = () => toggleSpeech(text, audioBtn);
+            
+            audioContainer.appendChild(audioBtn);
+            contentDiv.appendChild(audioContainer);
+        }
+
+        msgDiv.appendChild(contentDiv);
+        messagesContainer.appendChild(msgDiv);
+        
+        setTimeout(() => {
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }, 50);
+
+        return msgDiv;
+    }
+
+    // Voice Synthesis Logic
+    function toggleSpeech(text, btnElement) {
+        if (!('speechSynthesis' in window)) return;
+
+        if (window.speechSynthesis.speaking) {
+            window.speechSynthesis.cancel();
+            btnElement.innerHTML = `<i class="fa-solid fa-volume-high"></i> સાંભળો`;
             return;
         }
 
-        quizResult.innerHTML = "📝 Generating Quiz...";
+        let cleanText = text
+            .replace(/#/g, '')
+            .replace(/<[^>]*>?/gm, '')
+            .replace(/[*_~`]/g, '')
+            .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
+            .trim();
 
-        try {
+        const utterance = new SpeechSynthesisUtterance(cleanText);
+        utterance.lang = /[\u0A80-\u0AFF]/.test(cleanText) ? 'gu-IN' : 'en-US';
+        utterance.rate = 0.9;
 
-            const response = await fetch("/generate-quiz", {
+        utterance.onstart = () => { btnElement.innerHTML = `<i class="fa-solid fa-square-stop"></i> અટકાવો`; };
+        utterance.onend = () => { btnElement.innerHTML = `<i class="fa-solid fa-volume-high"></i> સાંભળો`; };
+        utterance.onerror = () => { btnElement.innerHTML = `<i class="fa-solid fa-volume-high"></i> સાંભળો`; };
 
-                method: "POST",
-
-                headers: {
-                    "Content-Type": "application/json"
-                },
-
-                body: JSON.stringify({
-
-                    topic: topic,
-
-                    className: quizClass.value,
-
-                    subject: quizSubject.value,
-
-                    difficulty: quizDifficulty.value,
-
-                    count: questionCount.value
-
-                })
-
-            });
-
-
-            const data = await response.json();
-
-            quizResult.innerHTML =
-                data.quiz.replace(/\n/g, "<br>");
-
-        } catch (error) {
-
-            console.error("QUIZ ERROR:", error);
-
-            quizResult.innerHTML =
-                "❌ Unable to generate quiz.";
-
-        }
-
-    };
-
+        window.speechSynthesis.speak(utterance);
     }
-
-async function sendCameraMessage() {
-
-    const input =
-        document.getElementById("cameraChatInput");
-
-    const question = input.value.trim();
-
-    if (!question) return;
-
-    cameraResult.innerHTML += `
-        <div class="user-message">
-            👤 ${question}
-        </div>
-    `;
-
-    input.value = "";
-
-    try {
-
-        const response = await fetch("/analyze-image", {
-
-            method: "POST",
-
-            headers: {
-                "Content-Type": "application/json"
-            },
-
-            body: JSON.stringify({
-
-                image: currentCapturedImage,
-
-                prompt: question
-
-            })
-
-        });
-
-        const data = await response.json();
-
-        cameraResult.innerHTML += `
-            <div class="bot-message">
-                🤖 ${data.reply}
-            </div>
-        `;
-
-    } catch (err) {
-
-        console.error(err);
-
-        cameraResult.innerHTML += `
-            <div class="bot-message">
-                ❌ Unable to get AI response.
-            </div>
-        `;
-    }
-
-}// 
- //================= AI FEATURE CLICK =================
-
-const lensBtn = document.querySelector('[data-feature="lens"]');
-
-console.log("Lens Button =", lensBtn);
-
-if (lensBtn) {
-
-    lensBtn.addEventListener("click", function () {
-
-        console.log("Lens Click Working");
-
-        alert("Lens Clicked");
-
-    });
-
-}
-
-
-// ================= NORMAL AI CHAT =================
-
-async function sendMessage() {
-
-    const message = userInput.value.trim();
-
-    if (!message) return;
-
-    lastUserMessage = message;
-
-    addUserMessage(chatBox, message);
-
-    saveChat(message);
-
-    userInput.value = "";
-
-    scrollBottom(chatBox);
-
-    const typing = addTyping(chatBox);
-
-    try {
-
-        const response = await fetch("/chat", {
-
-            method: "POST",
-
-            headers: {
-                "Content-Type": "application/json"
-            },
-
-            body: JSON.stringify({
-
-                message: message,
-
-                pdfText: currentPdfText
-
-            })
-
-        });
-
-        typing.remove();
-
-        if (!response.ok) {
-
-            throw new Error("Server Error");
-
-        }
-
-        const data = await response.json();
-
-        addBotMessage(chatBox, data.reply);
-
-        scrollBottom(chatBox);
-
-    }
-
-    catch (err) {
-
-        console.error(err);
-
-        typing.remove();
-
-        addBotMessage(
-
-            chatBox,
-
-            "❌ Unable to connect to AI."
-
-        );
-
-    }
-
-}
-
-// ================= SEND BUTTON =================
-
-if (sendBtn) {
-
-    sendBtn.onclick = () => {
-
-        console.log("✅ Send Click");
-
-        sendMessage();
-
-    };
-
-}
-
-if (userInput) {
-
-    userInput.addEventListener("keypress", function (e) {
-
-        if (e.key === "Enter") {
-
-            sendMessage();
-
-        }
-
-    });
-
-}
+});
