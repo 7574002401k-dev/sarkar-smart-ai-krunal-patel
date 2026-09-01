@@ -472,3 +472,10 @@ app.listen(PORT, async () => {
         console.log("Browser auto-open skipped.");
     }
 });
+// સ્ટેટિક ફાઈલો (HTML, CSS, JS, Images) લોડ કરવા માટે
+app.use(express.static('.'));
+
+// હોમ પેજ માટે રૂટ
+app.get('/', (req, res) => {
+    res.sendFile(__dirname + '/index.html');
+});
