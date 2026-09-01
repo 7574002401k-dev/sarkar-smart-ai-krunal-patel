@@ -1,415 +1,614 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="gu">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sarkar Smart AI</title>
-
-    <link rel="stylesheet" href="style-v4.css">
-
-    
+    <title>Sarkar Smart AI - શૈક્ષણિક અને સરકારી આસિસ્ટન્ટ</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* ચેટ હિસ્ટ્રી ડિલીટ બટન માટે નાની સ્ટાઇલ */
+        .history-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            padding: 8px 10px;
+            margin-bottom: 5px;
+            border-radius: 6px;
+            transition: background 0.2s;
+        }
+        .history-item:hover {
+            background: rgba(255, 255, 255, 0.08);
+        }
+        .history-item span {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            flex-grow: 1;
+        }
+        .delete-history-btn {
+            background: none;
+            border: none;
+            color: #ff4d4d;
+            cursor: pointer;
+            opacity: 0.7;
+            padding: 4px 6px;
+            font-size: 13px;
+            transition: opacity 0.2s;
+        }
+        .delete-history-btn:hover {
+            opacity: 1;
+        }
+        /* ચેટ હિસ્ટ્રી લિસ્ટ કન્ટેનર */
+        .chat-history-list {
+            flex-grow: 1;
+            overflow-y: auto;
+            margin-top: 15px;
+            padding-right: 5px;
+        }
+        /* લેંગ્વેજ સ્વીચર માટે સ્ટાઇલ */
+        .language-switcher-container {
+            margin-left: auto;
+            margin-right: 15px;
+        }
+        .lang-dropdown {
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 14px;
+            cursor: pointer;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+        .lang-dropdown option {
+            background: #1e1e1e;
+            color: #fff;
+        }
+    </style>
 </head>
 <body>
-    
-<!-- ================= AI CAMERA ================= -->
-<!-- ================= AI CAMERA V2 ================= -->
+    <div class="app-container">
+        <!-- Sidebar Overlay (Mobile) -->
+        <div class="sidebar-overlay" id="sidebarOverlay"></div>
 
-<section class="camera-section" id="cameraSection" style="display:none;">
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="brand">
+                    <div class="app-logo-badge clickable-logo">
+                        <img src="images/logo.png" alt="Sarkar Smart AI Logo" class="brand-logo-img">
+                    </div>
+                    <h2>Sarkar Smart AI</h2>
+                </div>
+                <button class="close-sidebar-btn" id="closeSidebarBtn" title="બંધ કરો">&times;</button>
+            </div>
+            
+            <button class="new-chat-btn" id="newChatBtn">
+                <i class="fa-solid fa-plus"></i> <span data-translate="newChat">નવી ચેટ શરૂ કરો</span>
+            </button>
 
-    <div class="camera-header">
-        <h2>🤖 AI Camera</h2>
-        <button id="closeCameraBtn">✖</button>
-    </div>
-  
-<!-- ================= AI FEATURES ================= -->
+            <!-- Chat History List Container -->
+            <div class="chat-history-list" id="chatHistoryList">
+                <!-- જૂની ચેટ્સ અહીં ડાયનેમિકલી લોડ થશે -->
+            </div>
 
-<div class="ai-feature-grid">
+            <div class="features-menu">
+                <h3 data-translate="toolsTitle">🚀 ટૂલ્સ & ટાસ્ક</h3>
+                <button class="feature-item" id="openMathSolverBtn">
+                    <i class="fa-solid fa-calculator"></i> <span data-translate="mathSolver">ગણિત સોલ્વર (કેમેરા/સ્કેનર)</span>
+                </button>
+                <!-- 🧮 સ્માર્ટ વૉઇસ કેલ્ક્યુલેટર બટન -->
+                <button class="feature-item" id="openSmartCalcBtn" style="background: rgba(0, 210, 255, 0.15); border: 1px solid rgba(0, 210, 255, 0.4);">
+                    <i class="fa-solid fa-microphone-lines" style="color: #00d2ff;"></i> <span data-translate="smartCalc">સ્માર્ટ વૉઇસ કેલ્ક્યુલેટર</span>
+                </button>
+                <button class="feature-item" id="openPdfReaderBtn">
+                    <i class="fa-solid fa-file-pdf"></i> <span data-translate="pdfReader">PDF / ડોક્યુમેન્ટ રીડર</span>
+                </button>
+                <button class="feature-item" id="openQuizModalBtn">
+                    <i class="fa-solid fa-file-pen"></i> <span data-translate="quizGen">ક્વિઝ ક્રિએટર</span>
+                </button>
+                <button class="feature-item" id="openFitnessModalBtn">
+                    <i class="fa-solid fa-heart-pulse"></i> <span data-translate="fitnessCalc">હેલ્થ & ફિટનેસ કેલ્ક્યુલેટર</span>
+                </button>
+                <button class="feature-item" id="openFoodDetectorBtn">
+                    <i class="fa-solid fa-utensils"></i> <span data-translate="foodDetector">ફૂડ & ફ્રૂટ સ્કેનર (આઈટમ ડિટેક્ટર)</span>
+                </button>
+                <button class="feature-item" id="openAgeModalBtn">
+                    <i class="fa-solid fa-cake-candles"></i> <span data-translate="ageCalc">વય (Age) કેલ્ક્યુલેટર</span>
+                </button>
+            </div>
 
-    <button class="ai-feature active" data-feature="lens">
-        🔍
-        <span>Lens</span>
-    </button>
+            <div class="sidebar-footer">
+                <p data-translate="footerText">ગુજરાત શિક્ષણ અને સરકારી સેવાઓ માટે ખાસ AI મોડલ</p>
+            </div>
+        </aside>
 
-    <button class="ai-feature" data-feature="math">
-        🧮
-        <span>Math Solver</span>
-    </button>
+        <!-- Main Chat Area -->
+        <main class="chat-area">
+            <header class="chat-header">
+                <button class="toggle-sidebar-btn" id="toggleSidebarBtn" title="મેનુ ખોલો">
+                    <i class="fa-solid fa-bars"></i>
+                </button>
 
-    <button class="ai-feature" data-feature="ocr">
-        📄
-        <span>OCR</span>
-    </button>
+                <!-- Middle Header Logo and Title -->
+                <div class="header-brand header-center">
+                    <div class="app-logo-badge clickable-logo" id="headerLogo">
+                        <img src="images/logo.png" alt="Sarkar Smart AI Logo" class="brand-logo-img">
+                    </div>
+                    <div class="header-info">
+                        <h2>Sarkar Smart AI</h2>
+                    </div>
+                </div>
 
-    <button class="ai-feature" data-feature="translate">
-        🌐
-        <span>Translate</span>
-    </button>
+                <!-- Language Switcher Option -->
+                <div class="language-switcher-container">
+                    <select id="langSelect" class="lang-dropdown">
+                        <option value="gu">ગુજરાતી</option>
+                        <option value="en">English</option>
+                    </select>
+                </div>
 
-    <button class="ai-feature" data-feature="plant">
-        🌿
-        <span>Plant</span>
-    </button>
+                <div class="header-spacer"></div>
+            </header>
 
-    <button class="ai-feature" data-feature="animal">
-        🐶
-        <span>Animal</span>
-    </button>
+            <div class="messages-container" id="messagesContainer">
+                <div class="message assistant-message">
+                    <div class="message-content">
+                        🌟 <b data-translate="welcomeTitle">નમસ્તે! Sarkar Smart AI માં તમારું હાર્દિક સ્વાગત છે!</b><br><br>                      
+                        <div class="message-source-note" style="font-size: 11px; opacity: 0.85; margin-top: 10px; border-top: 1px dashed rgba(255,255,255,0.3); padding-top: 6px; line-height: 1.4; display: block; clear: both;">
+                            [Source: Sarkar Smart AI System]
+                        </div>
+                    </div>
+                </div>
+            </div>
 
-    <button class="ai-feature" data-feature="homework">
-        📚
-        <span>Homework</span>
-    </button>
+            <!-- Preview Container for Uploaded Attachments -->
+            <div class="file-preview-bar hidden" id="filePreviewBar">
+                <span id="previewFileName"></span>
+                <button id="removeFileBtn">&times;</button>
+            </div>
 
-    <button class="ai-feature" data-feature="diagram">
-        🧪
-        <span>Diagram</span>
-    </button>
+            <!-- Chat Input Controls -->
+            <div class="chat-input-wrapper">
+                <form id="chatForm" class="chat-form">
+                    <div class="plus-menu-container">
+                        <button type="button" class="plus-btn" id="plusBtn" title="મીડિયા/ફાઈલ ઉમેરો">
+                            <i class="fa-solid fa-plus"></i>
+                        </button>
+                        <!-- Floating Menu -->
+                        <div class="plus-popup-menu hidden" id="plusMenu">
+                            <button type="button" id="menuCameraBtn"><i class="fa-solid fa-camera"></i> <span data-translate="menuCamera">કેમેરા</span></button>
+                            <button type="button" id="menuGalleryBtn"><i class="fa-solid fa-image"></i> <span data-translate="menuGallery">ગેલેરી / ફોટો</span></button>
+                        </div>
+                    </div>
 
-</div>
+                    <input type="file" id="fileInput" class="hidden" accept=".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg">
+                    <input type="file" id="galleryInput" class="hidden" accept="image/*">
 
-<!-- Camera Preview -->
+                    <input type="text" id="userInput" placeholder="તમારો પ્રશ્ન લખો અથવા કમેન્ટ ઉમેરો..." autocomplete="off">
 
-<video
-    id="cameraVideo"
-    autoplay
-    playsinline
-    muted>
-</video>
+                    <!-- Voice Mic Button -->
+                    <button type="button" id="micBtn" class="icon-action-btn" title="બોલીને લખો">
+                        <i class="fa-solid fa-microphone"></i>
+                    </button>
 
-    <!-- Camera Preview -->
-
-    <video id="cameraVideo" autoplay playsinline muted></video>
-
-    <canvas id="cameraCanvas" style="display:none;"></canvas>
-
-    <!-- Camera Buttons -->
-
-    <div class="camera-buttons">
-
-        <button id="openCameraBtn">
-            📷 Open Camera
-        </button>
-
-        <button id="switchCameraBtn">
-            🔄 Switch
-        </button>
-
-        <button id="captureBtn">
-            📸 Capture
-        </button>
-
-    </div>
-
-    <!-- Captured Image -->
-
-    <img
-        id="capturedImage"
-        style="display:none;">
-
-    <!-- Prompt -->
-
-    <div class="camera-prompt-box">
-
-        <textarea
-            id="cameraPrompt"
-            placeholder="Ask anything about this image...">
-        </textarea>
-
-        <button
-            id="analyzeImageBtn"
-            class="analyze-btn">
-
-            🤖 Analyze
-
-        </button>
-
-    </div>
-
-    <!-- Result -->
-
-    <div id="cameraResult"></div>
-
-</section>
-
-<!-- ================= MENU ================= -->
-
-<button class="menu-btn" id="menuBtn">☰</button>
-
-<!-- ================= SIDEBAR ================= -->
-
-<div class="sidebar" id="sidebar">
-
-    <button class="close-btn" id="closeBtn">✖</button>
-
-    <h2>🤖 AI Tools</h2>
-
-    <button class="tool-btn active" id="chatBtn">
-    💬 AI Chat
-</button>
-
-<button class="tool-btn" id="historyBtn">
-    🕒 Chat History
-</button>
-
-    <button class="tool-btn" id="pdfBtn">
-    📄 PDF Assistant
-</button>
-
-   <button class="tool-btn" id="imageCreatorBtn">
-    🎨 Image Creator
-</button>
-    
-    <button class="tool-btn" id="cameraBtn">
-    📷 Camera AI
-</button>
-
-<button class="tool-btn" id="quizBtn">
-    📝 Quiz Generator
-</button>
-
-</div>
-
-<!-- ================= HEADER ================= -->
-
-<header class="header">
-
-    <img src="images/logo.png"
-         alt="Sarkar Smart AI Logo"
-         class="logo">
-
-    <div>
-
-        <h1>Sarkar Smart AI</h1>
-
-        <p>
-            AI Assistant for Students, Teachers & Parents
-        </p>
-
+                    <button type="submit" id="sendBtn" class="send-btn" title="મોકલો">
+                        <i class="fa-solid fa-paper-plane"></i>
+                    </button>
+                </form>
+            </div>
+        </main>
     </div>
 
-</header>
-
-
-<!-- ================= CHAT ================= -->
-
-<main class="container">
-
-    
-
-    <div class="chat-box" id="chatBox">
-
-        <div class="bot-message">
-
-            🤖 Hello! I am Sarkar Smart AI.<br><br>
-
-            How can I help you today?
-
+    <!-- LOGO ZOOM MODAL -->
+    <div id="logoModal" class="logo-modal hidden">
+        <button class="close-logo-modal" id="closeLogoModal" title="બંધ કરો">&times;</button>
+        <div class="zoomed-logo-box">
+            <div class="zoomed-icon">
+                <img src="images/logo.png" alt="Sarkar Smart AI Logo" class="zoomed-logo-img">
+            </div>
+            <h2>Sarkar Smart AI</h2>
         </div>
-
     </div>
 
-   <div class="input-area">
-
-    <button id="attachBtn" title="Attach">
-        ➕
-    </button>
-
-    <input
-        type="text"
-        id="userInput"
-        placeholder="Ask anything...">
-
-    <button id="micBtn">
-        🎤
-    </button>
-
-    <button id="sendBtn">
-        ➤
-    </button>
-
-</div>
-
-<!-- Hidden File Picker -->
-
-<input
-    type="file"
-    id="filePicker"
-    hidden
-    accept="image/*,.pdf,.doc,.docx,.txt">
-</main>
-
-<!-- ================= PDF ASSISTANT ================= -->
-
-<section class="pdf-assistant" id="pdfSection" style="display:none;">
-
-    <h2>📄 AI PDF Assistant</h2>
-
-    <input type="file" id="pdfFile" accept=".pdf">
-
-    <button id="readPdfBtn">📖 Read PDF</button>
-
-    <div id="pdfResult"></div>
-
-    </section>
-
-<!-- ================= IMAGE GENERATOR ================= -->
-
-<section class="image-generator" id="imageGenerator" style="display:none;">
-
-    <h2>🎨 AI Image Generator</h2>
-
-    <p>Describe the image you want to create.</p>
-
-    <div class="image-input">
-
-        <input
-            type="text"
-            id="imagePrompt"
-            placeholder="Describe any image you want to create...">
-
-        <button id="generateImageBtn">
-            Generate Image
-        </button>
-
+    <!-- Camera / Scanner Modal (Maths Solver) -->
+    <div id="cameraModal" class="modal-card hidden">
+        <div class="modal-content camera-modal-content">
+            <div class="modal-header">
+                <h3>🧮 ગણિત સોલ્વર (Maths Scanner)</h3>
+                <button class="close-modal" id="closeCameraModalBtn">&times;</button>
+            </div>
+            <div class="camera-box">
+                <video id="webcam" autoplay playsinline></video>
+                <canvas id="cameraCanvas" class="hidden"></canvas>
+            </div>
+            <div class="camera-controls">
+                <button type="button" id="switchCameraBtn" class="cam-ctrl-btn" title="કેમેરા સ્વિચ કરો"><i class="fa-solid fa-rotate"></i></button>
+                <button type="button" id="captureBtn" class="cam-capture-btn" title="દાખલો સ્કેન કરો અને સોલ્વ કરો"><i class="fa-solid fa-circle"></i></button>
+            </div>
+        </div>
     </div>
 
-    <div id="imageResult"></div>
-
-</section>
-
-<!-- ================= QUIZ GENERATOR ================= -->
-
-<section class="quiz-generator" id="quizSection" style="display:none;">
-
-    <h2>📝 AI Quiz Generator</h2>
-
-    <input
-        type="text"
-        id="quizTopic"
-        placeholder="Enter Topic">
-
-    <select id="quizClass">
-
-        <option value="">Select Class</option>
-
-        <option>1</option>
-        <option>2</option>
-        <option>3</option>
-        <option>4</option>
-        <option>5</option>
-        <option>6</option>
-        <option>7</option>
-        <option>8</option>
-        <option>9</option>
-        <option>10</option>
-        <option>11</option>
-        <option>12</option>
-
-    </select>
-
-    <select id="quizSubject">
-
-        <option value="">Select Subject</option>
-
-        <option>Gujarati</option>
-        <option>Hindi</option>
-        <option>English</option>
-        <option>Mathematics</option>
-        <option>Science</option>
-        <option>Social Science</option>
-        <option>Computer</option>
-
-    </select>
-
-    <select id="quizDifficulty">
-
-        <option>Easy</option>
-
-        <option>Medium</option>
-
-        <option>Hard</option>
-
-    </select>
-
-    <input
-        type="number"
-        id="questionCount"
-        value="20"
-        min="1"
-        max="100">
-
-    <h3>Question Types</h3>
-
-    <label><input type="checkbox" id="mcq" checked> MCQ</label><br>
-
-    <label><input type="checkbox" id="fill"> Fill in the Blanks</label><br>
-
-    <label><input type="checkbox" id="match"> Match the Following</label><br>
-
-    <label><input type="checkbox" id="short"> Short Questions</label><br>
-
-    <label><input type="checkbox" id="long"> Long Questions</label><br><br>
-
-    <label>
-        <input type="checkbox" id="answerKey" checked>
-        Include Answer Key
-    </label>
-
-    <br><br>
-
-    <button id="generateQuizBtn">
-
-        📝 Generate Quiz
-
-    </button>
-
-    <div id="quizResult"></div>
-
-</section>
-<!-- ================= FOOTER ================= -->
-
-<footer>
-
-    <p>Created by <strong>Krunal Patel</strong></p>
-
-</footer>
-
-<div class="history-panel" id="historyPanel">
-
-    <div class="history-header">
-
-        <h2>🕒 Chat History</h2>
-
-        <button id="closeHistory">✖</button>
-
+    <!-- 🧮 Smart Voice Calculator Modal (સુધારેલ ID સાથે) -->
+    <div class="modal-card hidden" id="smartCalcModal">
+        <div class="modal-content" style="max-width: 420px;">
+            <div class="modal-header">
+                <h3>🧮 સ્માર્ટ વૉઇસ કેલ્ક્યુલેટર</h3>
+                <button class="close-modal" id="closeSmartCalcBtn">&times;</button>
+            </div>
+            <div class="grid-form">
+                <div class="form-group full-width" style="text-align: center;">
+                    <p style="font-size: 13px; opacity: 0.85; margin-bottom: 12px;">માઈક બટન દબાવીને ગણિતનો દાખલો અથવા વ્યવહારિક પ્રશ્ન બોલો:</p>
+                    <button type="button" id="calcMicBtn" style="width: 70px; height: 70px; border-radius: 50%; background: #00d2ff; color: #111; border: none; font-size: 24px; cursor: pointer; box-shadow: 0 4px 15px rgba(0,210,255,0.4); transition: transform 0.2s;">
+                        <i class="fa-solid fa-microphone"></i>
+                    </button>
+                    <p id="calcVoiceStatus" style="font-size: 12px; margin-top: 10px; color: #00d2ff; min-height: 18px;">સાંભળી રહ્યા છીએ...</p>
+                </div>
+                <div class="form-group full-width">
+                    <label>તમારો પ્રશ્ન / ગણતરી:</label>
+                    <textarea id="calcInputQuery" rows="3" placeholder="દા.ત. એક બેગમાં 10 સફરજન હતા તેમાંથી 3 બગડી ગયા તો કેટલા રહ્યા? અથવા ૨૫ ગુણ્યા ૪૦" style="width: 100%; padding: 10px; border-radius: 6px; background: #222; color: #fff; border: 1px solid #444; resize: vertical;"></textarea>
+                </div>
+                <button type="button" id="submitSmartCalcBtn" class="action-submit-btn">જવાબ મેળવો (Calculate)</button>
+            </div>
+        </div>
     </div>
 
-    <div id="historyList"></div>
+    <!-- Quiz Generator Modal -->
+    <div class="modal-card hidden" id="quizModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>📝 ક્વિઝ / પ્રશ્નપત્ર જનરેટર</h3>
+                <button class="close-modal" id="closeQuizModalBtn">&times;</button>
+            </div>
+            <div class="grid-form">
+                <div class="form-group">
+                    <label>ધોરણ / વર્ગ:</label>
+                    <input type="text" id="quizStd" placeholder="દા.ત. ધોરણ 8 (અથવા General)">
+                </div>
+                <div class="form-group">
+                    <label>વિષય:</label>
+                    <input type="text" id="quizSubject" placeholder="દા.ત. સામાજિક વિજ્ઞાન / GK">
+                </div>
+                <div class="form-group">
+                    <label>પ્રકરણ / ટોપિક:</label>
+                    <input type="text" id="quizChapter" placeholder="દા.ત. દિલ્હી સલ્તનત / NEP 2020">
+                </div>
+                <div class="form-group">
+                    <label>કુલ ગુણ:</label>
+                    <input type="number" id="quizMarks" value="5" min="1" max="100">
+                </div>
+                <div class="form-group full-width">
+                    <label><b>પ્રશ્નોના પ્રકાર પસંદ કરો:</b></label>
+                    <div class="checkbox-group">
+                        <label><input type="checkbox" id="typeMcq" checked> MCQ (વિકલ્પો)</label>
+                        <label><input type="checkbox" id="typeBlank"> ખાલી જગ્યા</label>
+                        <label><input type="checkbox" id="typeShort"> ટૂંકા પ્રશ્નો</label>
+                        <label><input type="checkbox" id="typeLong"> લાંબા પ્રશ્નો</label>
+                    </div>
+                </div>
+                <button class="action-submit-btn" id="submitQuizBtn">ક્વિઝ / પેપર બનાવો</button>
+            </div>
+        </div>
+    </div>
 
-</div>
+    <!-- Fitness Calculator Modal -->
+    <div class="modal-card hidden" id="fitnessModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>💪 હેલ્થ & ફિટનેસ કેલ્ક્યુલેટર</h3>
+                <button class="close-modal" id="closeFitnessModalBtn">&times;</button>
+            </div>
+            <div class="grid-form">
+                <div class="form-group">
+                    <label>લિંગ (Gender):</label>
+                    <select id="fitGender" class="form-control" style="width: 100%; padding: 10px; border-radius: 6px; background: #222; color: #fff; border: 1px solid #444;">
+                        <option value="Male">પુરૂષ (Male)</option>
+                        <option value="Female">સ્ત્રી (Female)</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>ઉંમર (Age in years):</label>
+                    <input type="number" id="fitAge" placeholder="દા.ત. 25" min="5" max="100">
+                </div>
+                <div class="form-group">
+                    <label>ઊંચાઈ (Height in cm):</label>
+                    <input type="number" id="fitHeight" placeholder="દા.ત. 170 સેમી">
+                </div>
+                <div class="form-group">
+                    <label>વજન (Weight in kg):</label>
+                    <input type="number" id="fitWeight" placeholder="દા.ત. 65 કિલો" step="0.1">
+                </div>
+                <div class="form-group full-width">
+                    <label>દૈનિક શારીરિક પ્રવૃત્તિ (Activity Level):</label>
+                    <select id="fitActivity" class="form-control" style="width: 100%; padding: 10px; border-radius: 6px; background: #222; color: #fff; border: 1px solid #444;">
+                        <option value="Sedentary">બેઠાડુ જીવન (Sedentary - ઓછી કસરત)</option>
+                        <option value="Light">હળવી કસરત (Light Active - અઠવાડિયામાં 1-3 દિવસ)</option>
+                        <option value="Moderate">મધ્યમ કસરત (Moderate Active - અઠવાડિયામાં 3-5 દિવસ)</option>
+                        <option value="Active">સખત કસરત (Very Active - દરરોજ સખત મહેનત)</option>
+                    </select>
+                </div>
+                <button class="action-submit-btn" id="submitFitnessBtn">ફિટનેસ રિપોર્ટ અને કેલરી ગણો</button>
+            </div>
+        </div>
+    </div>
 
-<script type="module" src="script.js"></script>
+    <!-- Food & Fruit Detector Modal -->
+    <div class="modal-card hidden" id="foodModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>🍎 ફૂડ & ફ્રૂટ સ્કેનર (Food & Fruit Scanner)</h3>
+                <button class="close-modal" id="closeFoodModalBtn">&times;</button>
+            </div>
+            <div class="grid-form">
+                <div class="form-group full-width">
+                    <label>ખોરાક, ફળ કે પીણાનો ફોટો અપલોડ કરો:</label>
+                    <input type="file" id="foodImageInput" accept="image/*" class="form-control" style="width: 100%; padding: 10px; border-radius: 6px; background: #222; color: #fff; border: 1px solid #444;">
+                </div>
+                <div class="form-group full-width">
+                    <label>વધારાની કોઈ નોંધ (જો હોય તો):</label>
+                    <input type="text" id="foodComment" placeholder="દા.ત. આમાં કઈ કઈ પોષક તત્વો છે તે જણાવો" style="width: 100%; padding: 10px; border-radius: 6px; background: #222; color: #fff; border: 1px solid #444;">
+                </div>
+                <button class="action-submit-btn" id="submitFoodBtn">ફોટો સ્કેન કરો અને વસ્તુઓ જાણો</button>
+            </div>
+        </div>
+    </div>
 
-<div class="attach-menu" id="attachMenu">
+    <!-- Age Calculator Modal -->
+    <div id="ageModal" class="modal-card hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>🎂 વય કેલ્ક્યુલેટર (Age Calculator)</h3>
+                <button id="closeAgeModalBtn" class="close-modal">&times;</button>
+            </div>
+            <div class="grid-form">
+                <div class="form-group full-width">
+                    <label>જન્મ તારીખ (Birth Date):</label>
+                    <div class="date-dropdown-group">
+                        <select id="birthDay" class="custom-dropdown">
+                            <option value="">તારીખ</option>
+                            <script>
+                                for(let i=1; i<=31; i++) document.write(`<option value="${i}">${i}</option>`);
+                            </script>
+                        </select>
+                        <select id="birthMonth" class="custom-dropdown">
+                            <option value="">મહિનો</option>
+                            <option value="1">જાન્યુઆરી</option><option value="2">ફેબ્રુઆરી</option><option value="3">માર્ચ</option><option value="4">એપ્રિલ</option>
+                            <option value="5">મે</option><option value="6">જૂન</option><option value="7">જુલાઈ</option><option value="8">ઓગસ્ટ</option>
+                            <option value="9">સપ્ટેમ્બર</option><option value="10">ઓક્ટોબર</option><option value="11">નવેમ્બર</option><option value="12">ડિસેમ્બર</option>
+                        </select>
+                        <select id="birthYear" class="custom-dropdown">
+                            <option value="">વર્ષ</option>
+                            <script>
+                                for(let i=2026; i>=1940; i--) document.write(`<option value="${i}">${i}</option>`);
+                            </script>
+                        </select>
+                    </div>
+                </div>
 
-    <button id="cameraAttach">
-        📷 Camera
-    </button>
+                <div class="form-group full-width">
+                    <label>આ તારીખ સુધીની ઉંમર (Target Date):</label>
+                    <div class="date-dropdown-group">
+                        <select id="targetDay" class="custom-dropdown">
+                            <option value="">તારીખ</option>
+                            <script>
+                                for(let i=1; i<=31; i++) document.write(`<option value="${i}">${i}</option>`);
+                            </script>
+                        </select>
+                        <select id="targetMonth" class="custom-dropdown">
+                            <option value="">મહિનો</option>
+                            <option value="1">જાન્યુઆરી</option><option value="2">ફેબ્રુઆરી</option><option value="3">માર્ચ</option><option value="4">એપ્રિલ</option>
+                            <option value="5">મે</option><option value="6">જૂન</option><option value="7">જુલાઈ</option><option value="8">ઓગસ્ટ</option>
+                            <option value="9">સપ્ટેમ્બર</option><option value="10">ઓક્ટોબર</option><option value="11">નવેમ્બર</option><option value="12">ડિસેમ્બર</option>
+                        </select>
+                        <select id="targetYear" class="custom-dropdown">
+                            <option value="">વર્ષ</option>
+                            <script>
+                                for(let i=2035; i>=1940; i--) document.write(`<option value="${i}">${i}</option>`);
+                            </script>
+                        </select>
+                    </div>
+                </div>
 
-    <button id="galleryAttach">
-        🖼 Gallery
-    </button>
+                <button type="button" id="submitAgeBtn" class="action-submit-btn">ઉંમર ગણો (Calculate Age)</button>
+            </div>
+        </div>
+    </div>
 
-    <button id="pdfAttach">
-        📄 PDF
-    </button>
+    <!-- JavaScript for Language Switcher -->
+    <script>
+        const translations = {
+            gu: {
+                newChat: "નવી ચેટ શરૂ કરો",
+                toolsTitle: "🚀 ટૂલ્સ & ટાસ્ક",
+                mathSolver: "ગણિત સોલ્વર (કેમેરા/સ્કેનર)",
+                smartCalc: "સ્માર્ટ વૉઇး કેલ્ક્યુલેટર",
+                pdfReader: "PDF / ડોક્યુમેન્ટ રીડર",
+                quizGen: "ક્વિઝ ક્રિએટર",
+                fitnessCalc: "હેલ્થ & ફિટનેસ કેલ્ક્યુલેટર",
+                foodDetector: "ફૂડ & ફ્રૂટ સ્કેનર (આઈટમ ડિટેક્ટર)",
+                ageCalc: "વય (Age) કેલ્ક્યુલેટર",
+                footerText: "ગુજરાત શિક્ષણ અને સરકારી સેવાઓ માટે ખાસ AI મોડલ",
+                welcomeTitle: "નમસ્તે! Sarkar Smart AI માં તમારું હાર્દિક સ્વાગત છે!",
+                menuCamera: "કેમેરા",
+                menuGallery: "ગેલેરી / ફોટો",
+                inputPlaceholder: "તમારો પ્રશ્ન લખો અથવા કમેન્ટ ઉમેરો..."
+            },
+            en: {
+                newChat: "Start New Chat",
+                toolsTitle: "🚀 Tools & Tasks",
+                mathSolver: "Math Solver (Camera/Scanner)",
+                smartCalc: "Smart Voice Calculator",
+                pdfReader: "PDF / Document Reader",
+                quizGen: "Quiz Creator",
+                fitnessCalc: "Health & Fitness Calculator",
+                foodDetector: "Food & Fruit Scanner",
+                ageCalc: "Age Calculator",
+                footerText: "Special AI Model for Gujarat Education & Gov Services",
+                welcomeTitle: "Hello! Welcome to Sarkar Smart AI!",
+                menuCamera: "Camera",
+                menuGallery: "Gallery / Photo",
+                inputPlaceholder: "Type your message or add a comment..."
+            }
+        };
 
-    <button id="fileAttach">
-        📁 File
-    </button>
+        const langSelect = document.getElementById("langSelect");
+        if (langSelect) {
+            langSelect.addEventListener("change", (e) => {
+                const lang = e.target.value;
+                const t = translations[lang];
+                if (!t) return;
 
-</div>
+                document.querySelectorAll("[data-translate]").forEach(el => {
+                    const key = el.getAttribute("data-translate");
+                    if (t[key]) el.textContent = t[key];
+                });
 
+                const userInput = document.getElementById("userInput");
+                if (userInput) userInput.placeholder = t.inputPlaceholder;
+            });
+        }
+    </script>
 
+    <!-- 🧮 સ્માર્ટ વૉઇး કેલ્ક્યુલેટર (સંપૂર્ણ સુધારેલું જાવાસ્ક્રિપ્ટ લોજિક) -->
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const openSmartCalcBtn = document.getElementById('openSmartCalcBtn');
+            const smartCalcModal = document.getElementById('smartCalcModal');
+            const closeSmartCalcBtn = document.getElementById('closeSmartCalcBtn');
+            
+            const calcMicBtn = document.getElementById('calcMicBtn');
+            const calcVoiceStatus = document.getElementById('calcVoiceStatus');
+            const calcInputQuery = document.getElementById('calcInputQuery');
+            const submitSmartCalcBtn = document.getElementById('submitSmartCalcBtn');
+            const messagesContainer = document.getElementById('messagesContainer');
+            const sidebar = document.getElementById('sidebar');
+            const sidebarOverlay = document.getElementById('sidebarOverlay');
+
+            // કેલ્ક્યુલેટર મોડલ ઓપન કરવું
+            if (openSmartCalcBtn && smartCalcModal) {
+                openSmartCalcBtn.addEventListener('click', () => {
+                    smartCalcModal.classList.remove('hidden');
+                    if (sidebar) sidebar.classList.remove('active');
+                    if (sidebarOverlay) sidebarOverlay.classList.remove('active');
+                });
+            }
+
+            // કેલ્ક્યુલેટર મોડલ બંધ કરવું
+            if (closeSmartCalcBtn && smartCalcModal) {
+                closeSmartCalcBtn.addEventListener('click', () => {
+                    smartCalcModal.classList.add('hidden');
+                });
+            }
+
+            // સ્માર્ટ કેલ્ક્યુલેટર માટે માઈક/વોઈસ રેકગ્નિશન
+            if (calcMicBtn && calcInputQuery) {
+                if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+                    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+                    const recognition = new SpeechRecognition();
+                    recognition.lang = 'gu-IN';
+
+                    calcMicBtn.addEventListener('click', () => {
+                        try {
+                            recognition.start();
+                            calcMicBtn.style.background = '#ff4d4d';
+                            if (calcVoiceStatus) calcVoiceStatus.textContent = "સાંભળી રહ્યા છીએ... બોલો!";
+                        } catch (e) {
+                            console.error(e);
+                        }
+                    });
+
+                    recognition.onresult = (e) => {
+                        const transcript = e.results[0][0].transcript;
+                        calcInputQuery.value = transcript;
+                        calcMicBtn.style.background = '#00d2ff';
+                        if (calcVoiceStatus) calcVoiceStatus.textContent = "અવાજ સફળતાપૂર્વક રેકોર્ડ થયો!";
+                    };
+
+                    recognition.onerror = () => {
+                        calcMicBtn.style.background = '#00d2ff';
+                        if (calcVoiceStatus) calcVoiceStatus.textContent = "⚠️ અવાજ ઓળખવામાં ભૂલ થઈ, ફરી પ્રયત્ન કરો.";
+                    };
+
+                    recognition.onend = () => {
+                        calcMicBtn.style.background = '#00d2ff';
+                    };
+                } else {
+                    if (calcVoiceStatus) calcVoiceStatus.textContent = "⚠️ તમારું બ્રાઉઝર વૉઇસ રેકગ્નિશન સપોર્ટ કરતું નથી.";
+                }
+            }
+
+            // જવાબ મેળવો (Calculate) બટનનું લોજિક
+            if (submitSmartCalcBtn && smartCalcModal) {
+                submitSmartCalcBtn.addEventListener('click', async () => {
+                    const queryText = calcInputQuery ? calcInputQuery.value.trim() : "";
+                    if (!queryText) {
+                        alert("⚠️ કૃપા કરીને પહેલા કોઈ પ્રશ્ન અથવા ગણતરી લખો/બોલો.");
+                        return;
+                    }
+
+                    // મોડલ બંધ કરો
+                    smartCalcModal.classList.add('hidden');
+
+                    // યુઝરનો પ્રશ્ન ચેટમાં ઉમેરો
+                    if (messagesContainer) {
+                        const userMsgDiv = document.createElement('div');
+                        userMsgDiv.className = 'message user-message';
+                        userMsgDiv.innerHTML = `<div class="message-content">🧮 [સ્માર્ટ કેલ્ક્યુલેટર પ્રશ્ન]: ${queryText}</div>`;
+                        messagesContainer.appendChild(userMsgDiv);
+
+                        // લોડિંગ મેસેજ ઉમેરો
+                        const loadingDiv = document.createElement('div');
+                        loadingDiv.className = 'message assistant-message';
+                        loadingDiv.id = 'tempCalcLoading';
+                        loadingDiv.innerHTML = `<div class="message-content">⏳ AI ગણતરી કરી રહ્યું છે, કૃપા કરીને રાહ જુઓ...</div>`;
+                        messagesContainer.appendChild(loadingDiv);
+                        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+
+                        try {
+                            const res = await fetch("/api/chat", {
+                                method: "POST",
+                                headers: { "Content-Type": "application/json" },
+                                body: JSON.stringify({ 
+                                    message: `આ ગણિતના પ્રશ્ન અથવા વ્યવહારિક કોયડાનો સ્ટેપ-બાય-સ્ટેપ જવાબ આપો: ${queryText}` 
+                                })
+                            });
+
+                            const data = await res.json();
+                            const tempMsg = document.getElementById('tempCalcLoading');
+                            if (tempMsg) tempMsg.remove();
+
+                            const replyText = data.reply || "⚠️ જવાબ મેળવવામાં મુશ્કેલી થઈ છે.";
+                            
+                            const aiMsgDiv = document.createElement('div');
+                            aiMsgDiv.className = 'message assistant-message';
+                            aiMsgDiv.innerHTML = `<div class="message-content">${replyText.replace(/\n/g, '<br>')}</div>`;
+                            messagesContainer.appendChild(aiMsgDiv);
+                            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+
+                        } catch (err) {
+                            const tempMsg = document.getElementById('tempCalcLoading');
+                            if (tempMsg) tempMsg.remove();
+                            
+                            const errorDiv = document.createElement('div');
+                            errorDiv.className = 'message assistant-message';
+                            errorDiv.innerHTML = `<div class="message-content">⚠️ સર્વર સાથે સંપર્ક કરવામાં ભૂલ થઈ છે.</div>`;
+                            messagesContainer.appendChild(errorDiv);
+                        }
+                    }
+
+                    // ઇનપુટ સાફ કરો
+                    if (calcInputQuery) calcInputQuery.value = "";
+                });
+            }
+        });
+    </script>
+
+    <script src="script.js"></script>
 </body>
 </html>
