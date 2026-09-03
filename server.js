@@ -76,7 +76,7 @@ CURRENT REAL-TIME CONTEXT: Today is ${todayDateStr}.
 🚨 ABSOLUTE ZERO-HALLUCINATION & STRICT TRUTH POLICY:
 1. NEVER INVENT, ASSUME OR GUESS: Do not fabricate facts, local events, personal secrets, obscure village details, unverified statistics, or fake names. 
 2. MANDATORY HONEST UNCERTAINTY (ANTI-FALSE-ANSWER RULE): If a user asks about any local information, obscure facts, hard/unpredictable questions, or topics where you do not possess 100% verified or official data, you MUST NOT make up an answer. Instead, reply strictly in pure Gujarati: "આ અંગે મારી પાસે કોઈ ચોક્કસ કે અધિકૃત માહિતી ઉપલબ્ધ નથી, તેથી હું અંદાજ લગાવી શકતો નથી."
-3. STRICT GEOGRAPHICAL & FACTUAL TRUTH: Never guess districts, talukas, or local boundaries in Gujarat (e.g., mixing up Navsari talukas with Vapi, Dang, or Sabarkantha). If you are not 100% sure, you MUST admit it instead of guessing.
+3. STRICT GEOGRAPHICAL & FACTUAL TRUTH: Never guess districts, talukas, or local boundaries in Gujarat. If you are not 100% sure, you MUST admit it instead of guessing. Never falsely cite portals like 'Digital Gujarat Portal' for random, unverified, or guessed facts.
 4. STRICT SOURCE INTEGRITY: NEVER falsely cite official portals like 'Digital Gujarat Portal', 'GCERT', or 'Government of Gujarat' for random, unverified, or guessed facts. If you do not have an official verified source for a statement, cite it strictly as [Source: Verified AI Knowledge Limitation].
 5. LANGUAGE MATCHING: Always reply in the exact same language in which the user asks (e.g., pure Gujarati for Gujarati, English for English).
 6. GOVERNMENT & EDUCATIONAL PRIORITY: Prioritize official standards (GCERT, NCERT, Digital Gujarat, GOI/GOG portals) ONLY when you have verified factual data.` 
@@ -91,7 +91,7 @@ CURRENT REAL-TIME CONTEXT: Today is ${todayDateStr}.
         const response = await openai.chat.completions.create({
             model: "gpt-4o-mini",
             messages: messages,
-            temperature: 0.0, // 👈 0.0 રાખવાથી AI પોતાની મેળે કલ્પના કરવાનું બિલકુલ બંધ કરી દેશે.
+            temperature: 0.0,
         });
 
         return response.choices[0].message.content;
@@ -127,7 +127,6 @@ app.post('/api/chat', async (req, res) => {
         }
 
         let reply = await getAIResponse(promptText, history || [], imageBase64);
-        
         res.json({ reply });
     } catch (error) {
         console.error("Chat API Error:", error);
@@ -135,7 +134,7 @@ app.post('/api/chat', async (req, res) => {
     }
 });
 
-// 🎨 2. Image Generator Endpoint (Temporarily Disabled)
+// 🎨 2. Image Generator Endpoint
 app.post('/api/generate-image', async (req, res) => {
     try {
         res.json({
@@ -380,7 +379,7 @@ app.post('/api/detect-food', async (req, res) => {
 // 🎂 9. Age Calculator Endpoint
 app.post('/api/calculate-age', async (req, res) => {
     try {
-        { birthDate, targetDate } = req.body;
+        const { birthDate, targetDate } = req.body; // 👈 Corrected constant declaration
         if (!birthDate) {
             return res.status(400).json({ reply: "⚠️ કૃપા કરીને જન્મતારીખ પસંદ કરો." });
         }
@@ -413,7 +412,7 @@ app.post('/api/calculate-age', async (req, res) => {
 
         const prompt = `એક હેલ્થ અને ડેટા એક્સપર્ટ તરીકે નીચે આપેલી ગણતરીના આધારે શુદ્ધ ગુજરાતીમાં ઉંમર રિપોર્ટ તૈયાર કરો:
 - જન્મતારીખ: ${birthDate}
-- ચોક્કસ ઉંમર: `${years} વર્ષ, ${months} મહિના, અને ${days} દિવસ
+- ચોક્કસ ઉંમર: ${years} વર્ષ, ${months} મહિના, અને ${days} દિવસ
 - કુલ જીવેલા દિવસો: આશરે ${totalDays.toLocaleString()} દિવસો (${totalHours.toLocaleString()} કલાકો)
 જવાબના અંતે [Source: AI Age Calculator System] ચોક્કસ લખો.`;
 
@@ -430,19 +429,12 @@ app.get('/live-news', fetchLiveNewsHandler);
 
 // Start Server
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, async () => {
-    console.log(`🚀 Sarkar Smart AI Server running on http://localhost:${PORT}`);
-    try {
-        await open(`http://localhost:${PORT}`);
-    } catch (e) {
-        console.log("Browser auto-open skipped.");
-    }
+app.listen(PORT, () => {
+    console.log(`🚀 Sarkar Smart AI Server running on port ${PORT}`);
 });
 
-// સ્ટેટિક ફાઈલો લોડ કરવા માટે
 app.use(express.static('.'));
 
-// હોમ પેજ માટે રૂટ
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
 });
