@@ -181,11 +181,10 @@
                         <button type="button" class="plus-btn" id="plusBtn" title="મીડિયા/ફાઈલ ઉમેરો">
                             <i class="fa-solid fa-plus"></i>
                             
-                  <!-- Floating Menu -->
-                    <div class="plus-popup-menu hidden" id="plusMenu" style="display: none;">
-                    <button type="button" id="menuGalleryBtn"><i class="fa-solid fa-image"></i> <span data-translate="menuGallery">ગેલેરી / ફોટો</span></button>
-                    </div>
-
+                 <!-- Floating Menu -->
+               <div class="plus-popup-menu hidden" id="plusMenu" style="display: none; position: absolute; bottom: 60px; left: 10px; background: white; border: 1px solid #ccc; border-radius: 8px; box-shadow: 0px 4px 10px rgba(0,0,0,0.1); padding: 5px; z-index: 1000;">
+               <button type="button" id="menuGalleryBtn" style="display: flex; align-items: center; gap: 8px; background: none; border: none; padding: 8px 12px; width: 100%; cursor: pointer; text-align: left;"><i class="fa-solid fa-image"></i> <span data-translate="menuGallery">ગેલેરી / ફોટો</span></button>
+                  </div>
                     <input type="file" id="fileInput" class="hidden" accept=".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg">
                     <input type="file" id="galleryInput" class="hidden" accept="image/*">
 
