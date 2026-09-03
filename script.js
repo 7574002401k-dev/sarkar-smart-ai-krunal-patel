@@ -147,7 +147,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     });
 
-    // 4. File / Image Attachment Selection
+    // 4. File / Image Attachment Selection (સંપૂર્ણ સુધારેલું જેથી ફોટો સિલેક્ટ થતા જ AI પ્રોસેસિંગ શરૂ થાય)
     if (menuFileBtn && fileInput) menuFileBtn.addEventListener("click", () => fileInput.click());
     if (menuGalleryBtn && galleryInput) menuGalleryBtn.addEventListener("click", () => galleryInput.click());
     if (openPdfReaderBtn && fileInput) openPdfReaderBtn.addEventListener("click", () => fileInput.click());
@@ -160,6 +160,74 @@ document.addEventListener("DOMContentLoaded", () => {
             selectedFile = e.target.files[0];
             if (previewFileName) previewFileName.textContent = `📎 પસંદ કરેલી ફાઈલ: ${selectedFile.name}`;
             if (filePreviewBar) filePreviewBar.classList.remove("hidden");
+
+            // જો યુઝરે ઇમેજ/ફોટો સિલેક્ટ કર્યો હોય, તો યુઝરે કંઈપણ લખ્યા વગર પણ સીધો સબમિટ ફોર્મ જેવું જ કામ ઓટોમેટિક અથવા ચેટમાં મોકલી શકાય
+            // અથવા યુઝર 'મોકલો' બટન દબાવે ત્યારે તે પ્રોસેસ થશે. જો સીધેસીધું રીડ કરાવવું હોય તો નીચે મુજબ કોલ કરી શકાય:
+            if (selectedFile.type.startsWith("image/")) {
+                const reader = new FileReader();
+                reader.onload = async () => {
+                    const base64Image = reader.result;
+                    const comment = userInput && userInput.value.trim() ? userInput.value.trim() : "આ ફોટા વિશે વિગતવાર સમજાવો અથવા આ ફોટો રીડ કરો.";
+                    
+                    if (userInput) userInput.value = "";
+                    if (filePreviewBar) filePreviewBar.classList.add("hidden");
+
+                    // ચેટમાં યુઝરનો મેસેજ અને ફોટો બતાવો
+                    const userMsgDiv = document.createElement('div');
+                    userMsgDiv.className = 'message user-message';
+                    userMsgDiv.innerHTML = `<div class="message-content">🖼️ [અપલોડ કરેલો ફોટો]: ${comment}<br><img src="${base64Image}" style="max-width:200px; border-radius:8px; margin-top:8px; display:block;"></div>`;
+                    messagesContainer.appendChild(userMsgDiv);
+                    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+
+                    const loadingDiv = document.createElement('div');
+                    loadingDiv.className = 'message assistant-message';
+                    loadingDiv.id = 'tempImageLoading';
+                    loadingDiv.innerHTML = `<div class="message-content">🔄 ફોટો રીડ અને વિશ્લેષણ કરવામાં આવી રહ્યું છે...</div>`;
+                    messagesContainer.appendChild(loadingDiv);
+                    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+
+                    try {
+                        const res = await fetch("/api/chat", {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({
+                                message: comment,
+                                imageBase64: base64Image,
+                                history: conversationHistory
+                            })
+                        });
+
+                        const data = await res.json();
+                        const tempMsg = document.getElementById('tempImageLoading');
+                        if (tempMsg) tempMsg.remove();
+
+                        const replyText = data.reply || "⚠️ ફોટો રીડ કરવામાં અથવા વિશ્લેષણ કરવામાં મુશ્કેલી થઈ છે.";
+                        
+                        const aiMsgDiv = document.createElement('div');
+                        aiMsgDiv.className = 'message assistant-message';
+                        aiMsgDiv.innerHTML = `<div class="message-content">${replyText.replace(/\n/g, '<br>')}</div>`;
+                        messagesContainer.appendChild(aiMsgDiv);
+                        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+
+                        conversationHistory.push({ role: "user", parts: [{ text: `[ફોટો અપલોડ]: ${comment}` }] });
+                        conversationHistory.push({ role: "model", parts: [{ text: replyText }] });
+
+                    } catch (err) {
+                        const tempMsg = document.getElementById('tempImageLoading');
+                        if (tempMsg) tempMsg.remove();
+                        
+                        const errorDiv = document.createElement('div');
+                        errorDiv.className = 'message assistant-message';
+                        errorDiv.innerHTML = `<div class="message-content">⚠️ સર્વર સાથે સંપર્ક કરવામાં ભૂલ થઈ છે.</div>`;
+                        messagesContainer.appendChild(errorDiv);
+                    }
+
+                    selectedFile = null;
+                    if (fileInput) fileInput.value = "";
+                    if (galleryInput) galleryInput.value = "";
+                };
+                reader.readAsDataURL(selectedFile);
+            }
         }
     }
 
@@ -566,7 +634,6 @@ document.addEventListener("DOMContentLoaded", () => {
                 calcDisplay.value = '';
             } else if (action === '=' || btn.classList.contains('equals')) {
                 try {
-                    // સુરક્ષિત ગણતરી માટે
                     let expr = calcDisplay.value.replace(/×/g, '*').replace(/÷/g, '/');
                     calcDisplay.value = eval(expr);
                 } catch (err) {
@@ -578,7 +645,6 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-    // સ્માર્ટ વોઈસ કેલ્ક્યુલેટર માટે માઈક/વોઈસ ઇનપુટ
     if (voiceCalcBtn && calcDisplay) {
         if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
             const CalcSpeech = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -597,8 +663,6 @@ document.addEventListener("DOMContentLoaded", () => {
             calcRec.onresult = (e) => {
                 const speechText = e.results[0][0].transcript;
                 voiceCalcBtn.style.color = 'inherit';
-                
-                // અંક અથવા ગણતરી શબ્દોમાંથી મેળવવા માટે
                 calcDisplay.value = speechText;
             };
 
