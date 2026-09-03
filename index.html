@@ -100,12 +100,19 @@
 
             <div class="features-menu">
                 <h3 data-translate="toolsTitle">🚀 ટૂલ્સ & ટાસ્ક</h3>
+                
+                <!-- 🖼️ સાઇડબારમાં ગેલેરી / ફોટો અપલોડ બટન -->
+                <button class="feature-item" id="sidebarGalleryBtn" style="background: rgba(46, 204, 113, 0.15); border: 1px solid rgba(46, 204, 113, 0.4);">
+                    <i class="fa-solid fa-image" style="color: #2ecc71;"></i> <span data-translate="menuGallery">ગેલેરી / ફોટો અપલોડ</span>
+                </button>
+                <input type="file" id="sidebarFileInput" accept="image/*" style="display: none;">
+
                 <button class="feature-item" id="openMathSolverBtn">
                     <i class="fa-solid fa-calculator"></i> <span data-translate="mathSolver">ગણિત સોલ્વર (કેમેરા/સ્કેનર)</span>
                 </button>
                 <!-- 🧮 સ્માર્ટ વૉઇસ કેલ્ક્યુલેટર બટન -->
                 <button class="feature-item" id="openSmartCalcBtn" style="background: rgba(0, 210, 255, 0.15); border: 1px solid rgba(0, 210, 255, 0.4);">
-                    <i class="fa-solid fa-microphone-lines" style="color: #00d2ff;"></i> <span data-translate="smartCalc">સ્માર્ટ વૉઇસ કેલ્ક્યુલેટર</span>
+                    <i class="fa-solid fa-microphone-lines" style="color: #00d2ff;"></i> <span data-translate="smartCalc">સ્માર્ટ વૉઇး કેલ્ક્યુલેટર</span>
                 </button>
                 <button class="feature-item" id="openPdfReaderBtn">
                     <i class="fa-solid fa-file-pdf"></i> <span data-translate="pdfReader">PDF / ડોક્યુમેન્ટ રીડર</span>
@@ -174,19 +181,10 @@
                 <button id="removeFileBtn">&times;</button>
             </div>
 
-            <!-- Chat Input Controls -->
+            <!-- Chat Input Controls (પ્લસ બટન હટાવીને સાફ કર્યું છે) -->
             <div class="chat-input-wrapper">
                 <form id="chatForm" class="chat-form">
-                    <div class="plus-menu-container">
-                        <button type="button" class="plus-btn" id="plusBtn" title="મીડિયા/ફાઈલ ઉમેરો">
-                            <i class="fa-solid fa-plus"></i>
-                            
-                 <!-- Floating Menu -->
-               <div class="plus-popup-menu hidden" id="plusMenu" style="display: none; position: absolute; bottom: 60px; left: 10px; background: white; border: 1px solid #ccc; border-radius: 8px; box-shadow: 0px 4px 10px rgba(0,0,0,0.1); padding: 5px; z-index: 1000;">
-               <button type="button" id="menuGalleryBtn" style="display: flex; align-items: center; gap: 8px; background: none; border: none; padding: 8px 12px; width: 100%; cursor: pointer; text-align: left;"><i class="fa-solid fa-image"></i> <span data-translate="menuGallery">ગેલેરી / ફોટો</span></button>
-                  </div>
                     <input type="file" id="fileInput" class="hidden" accept=".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg">
-                    <input type="file" id="galleryInput" class="hidden" accept="image/*">
 
                     <input type="text" id="userInput" placeholder="તમારો પ્રશ્ન લખો અથવા કમેન્ટ ઉમેરો..." autocomplete="off">
 
@@ -232,11 +230,11 @@
         </div>
     </div>
 
-    <!-- 🧮 Smart Voice Calculator Modal (સુધારેલ ID સાથે) -->
+    <!-- 🧮 Smart Voice Calculator Modal -->
     <div class="modal-card hidden" id="smartCalcModal">
         <div class="modal-content" style="max-width: 420px;">
             <div class="modal-header">
-                <h3>🧮 સ્માર્ટ વૉઇસ કેલ્ક્યુલેટર</h3>
+                <h3>🧮 સ્માર્ટ વૉઇး કેલ્ક્યુલેટર</h3>
                 <button class="close-modal" id="closeSmartCalcBtn">&times;</button>
             </div>
             <div class="grid-form">
@@ -417,7 +415,7 @@
         </div>
     </div>
 
-    <!-- JavaScript for Language Switcher -->
+    <!-- JavaScript for Language Switcher & Sidebar Gallery Trigger -->
     <script>
         const translations = {
             gu: {
@@ -432,8 +430,7 @@
                 ageCalc: "વય (Age) કેલ્ક્યુલેટર",
                 footerText: "ગુજરાત શિક્ષણ અને સરકારી સેવાઓ માટે ખાસ AI મોડલ",
                 welcomeTitle: "નમસ્તે! Sarkar Smart AI માં તમારું હાર્દિક સ્વાગત છે!",
-                menuCamera: "કેમેરા",
-                menuGallery: "ગેલેરી / ફોટો",
+                menuGallery: "ગેલેરી / ફોટો અપલોડ",
                 inputPlaceholder: "તમારો પ્રશ્ન લખો અથવા કમેન્ટ ઉમેરો..."
             },
             en: {
@@ -448,8 +445,7 @@
                 ageCalc: "Age Calculator",
                 footerText: "Special AI Model for Gujarat Education & Gov Services",
                 welcomeTitle: "Hello! Welcome to Sarkar Smart AI!",
-                menuCamera: "Camera",
-                menuGallery: "Gallery / Photo",
+                menuGallery: "Gallery / Photo Upload",
                 inputPlaceholder: "Type your message or add a comment..."
             }
         };
@@ -470,6 +466,22 @@
                 if (userInput) userInput.placeholder = t.inputPlaceholder;
             });
         }
+
+        // સાઇડબાર ગેલેરી બટન ક્લિક થતાં ફાઇલ અપલોડ ઓપન કરવાનું લોજિક
+        document.addEventListener('DOMContentLoaded', () => {
+            const sidebarGalleryBtn = document.getElementById('sidebarGalleryBtn');
+            const sidebarFileInput = document.getElementById('sidebarFileInput');
+            const sidebar = document.getElementById('sidebar');
+            const sidebarOverlay = document.getElementById('sidebarOverlay');
+
+            if (sidebarGalleryBtn && sidebarFileInput) {
+                sidebarGalleryBtn.addEventListener('click', () => {
+                    sidebarFileInput.click(); // ગેલેરી ઓપન કરશે
+                    if (sidebar) sidebar.classList.remove('active');
+                    if (sidebarOverlay) sidebarOverlay.classList.remove('active');
+                });
+            }
+        });
     </script>
 
     <!-- 🧮 સ્માર્ટ વૉઇး કેલ્ક્યુલેટર (સંપૂર્ણ સુધારેલું જાવાસ્ક્રિપ્ટ લોજિક) -->
