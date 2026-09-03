@@ -126,32 +126,15 @@ app.post('/api/chat', async (req, res) => {
     }
 });
 
-// 🎨 2. Image Generator Endpoint (Fixed Blur/Low Quality -> High Res Realism)
+// 🎨 2. Image Generator Endpoint (Temporarily Disabled)
 app.post('/api/generate-image', async (req, res) => {
     try {
-        const { prompt } = req.body;
-        if (!prompt || prompt.trim() === "") {
-            return res.json({ reply: "⚠️ કૃપા કરીને ઈમેજ માટે ડિસ્ક્રિપ્શન લખો." });
-        }
-
-        const enhancedPrompt = `${prompt.trim()}, 8k resolution, photorealistic, highly detailed, sharp focus, hyperrealistic, cinematic lighting, masterpiece, best quality, intricate details`;
-        const cleanPrompt = encodeURIComponent(enhancedPrompt);
-        const randomSeed = Math.floor(Math.random() * 10000000);
-        
-        const directImageUrl = `https://image.pollinations.ai/prompt/${cleanPrompt}?width=1280&height=720&seed=${randomSeed}&nologo=true&model=flux`;
-
-        const imageFetch = await axios.get(directImageUrl, { responseType: 'arraybuffer' });
-        const base64Data = Buffer.from(imageFetch.data).toString('base64');
-        const safeDataUrl = `data:image/jpeg;base64,${base64Data}`;
-
         res.json({
-            reply: `✨ તમારું ચિત્ર હવે હાઈ-ક્વોલિટી અને રિયલ બની ગયું છે!\n(Refined Prompt: ${enhancedPrompt})`,
-            imageUrl: safeDataUrl,
-            source: "[Source: Pollinations Flux High-Res Engine]"
+            reply: "⚠️ હાલમાં ઈમેજ જનરેશન સર્વિસ બંધ છે, આ સુવિધા હવે પછીના અપડેટમાં આવશે."
         });
     } catch (error) {
         console.error("Image Gen Error:", error);
-        res.status(500).json({ reply: "⚠️ ઈમેજ જનરેટ કરવામાં પ્રોબ્લેમ થયો. [Source: High-Res Engine Error]" });
+        res.status(500).json({ reply: "⚠️ સર્વિસ કામ નથી કરી રહી." });
     }
 });
 
