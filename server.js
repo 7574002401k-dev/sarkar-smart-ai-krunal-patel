@@ -379,7 +379,7 @@ app.post('/api/detect-food', async (req, res) => {
 // 🎂 9. Age Calculator Endpoint
 app.post('/api/calculate-age', async (req, res) => {
     try {
-        const { birthDate, targetDate } = req.body; // 👈 Corrected constant declaration
+        const { birthDate, targetDate } = req.body;
         if (!birthDate) {
             return res.status(400).json({ reply: "⚠️ કૃપા કરીને જન્મતારીખ પસંદ કરો." });
         }
