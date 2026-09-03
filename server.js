@@ -11,6 +11,11 @@ import mammoth from 'mammoth';
 import ExcelJS from 'exceljs';
 import axios from 'axios';
 import { OpenAI } from 'openai';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const app = express();
 
@@ -69,11 +74,12 @@ async function getAIResponse(prompt, history = [], imageBase64 = null) {
 CURRENT REAL-TIME CONTEXT: Today is ${todayDateStr}.
 
 🚨 ABSOLUTE ZERO-HALLUCINATION & STRICT TRUTH POLICY:
-1. NEVER INVENT OR GUESS: Do not fabricate facts, statistics, local histories, names, rules, or unverified data. You must behave with extreme factual accuracy.
-2. MANDATORY HONEST UNCERTAINTY: If a user asks about a local, specific, or difficult question and you do not possess 100% verified, real-time, or official data, you MUST NOT make up an answer. Instead, reply strictly in pure Gujarati: "આ અંગે મારી પાસે સચોટ કે અધિકૃત માહિતી ઉપલબ્ધ નથી."
-3. LANGUAGE MATCHING: Always reply in the exact same language in which the user asks (e.g., pure Gujarati for Gujarati, English for English).
-4. GOVERNMENT & EDUCATIONAL PRIORITY: Prioritize official standards (GCERT, NCERT, Digital Gujarat, GOI/GOG portals).
-5. ACCURATE SOURCE CITATION: At the end of your response, state the actual source (e.g., [Source: GCERT / NCERT Official Curriculum], [Source: Google News Live RSS], [Source: Digital Gujarat Portal]). If information is unverified, state [Source: Verified AI Knowledge Limitation].` 
+1. NEVER INVENT, ASSUME OR GUESS: Do not fabricate facts, local events, personal secrets, obscure village details, unverified statistics, or fake names. 
+2. MANDATORY HONEST UNCERTAINTY (ANTI-FALSE-ANSWER RULE): If a user asks about any local information, obscure facts, hard/unpredictable questions, or topics where you do not possess 100% verified or official data, you MUST NOT make up an answer. Instead, reply strictly in pure Gujarati: "આ અંગે મારી પાસે કોઈ ચોક્કસ કે અધિકૃત માહિતી ઉપલબ્ધ નથી, તેથી હું અંદાજ લગાવી શકતો નથી."
+3. STRICT FACT CHECKING: If a math problem, logical puzzle, or complex query is given, break it down step-by-step with absolute logical precision. If uncertain, decline politely.
+4. LANGUAGE MATCHING: Always reply in the exact same language in which the user asks (e.g., pure Gujarati for Gujarati, English for English).
+5. GOVERNMENT & EDUCATIONAL PRIORITY: Prioritize official standards (GCERT, NCERT, Digital Gujarat, GOI/GOG portals).
+6. ACCURATE SOURCE CITATION: At the end of your response, state the actual source (e.g., [Source: GCERT / NCERT Official Curriculum], [Source: Google News Live RSS], [Source: Digital Gujarat Portal]). If information is unverified or unknown, state [Source: Verified AI Knowledge Limitation].` 
             },
             ...history.map(h => ({
                 role: h.role === 'model' ? 'assistant' : h.role,
@@ -85,7 +91,7 @@ CURRENT REAL-TIME CONTEXT: Today is ${todayDateStr}.
         const response = await openai.chat.completions.create({
             model: "gpt-4o-mini",
             messages: messages,
-            temperature: 0.0, // 👈 0.0 કરવાથી AI સરાસર કાલ્પનિક વાતો કરવાનું બંધ કરીને એકદમ સચોટ અને ટૂંકો સાચો જવાબ જ આપશે.
+            temperature: 0.0, // 👈 0.0 રાખવાથી AI પોતાની મેળે કલ્પના કરીને ખોટા જવાબો આપવાનું બંધ કરી દેશે.
         });
 
         return response.choices[0].message.content;
@@ -117,7 +123,7 @@ app.post('/api/chat', async (req, res) => {
             }
 
             promptText = `આજે તારીખ ${todayDateStr} છે. યુઝરનો સવાલ છે: "${message}". 
-જો આ સવાલ લાઈવ ક્રિકેટ સ્કોર અથવા એવી રમત સાથે સંકળાયેલ હોય જે નીચે આપેલા ન્યૂઝ ફીડમાં ઉપલબ્ધ નથી, તો કોઈપણ કાલ્પનિક સ્કોર ન આપતા સ્પષ્ટ કરો કે લાઈવ સ્કોર ઉપલબ્ધ નથી અને [Cricbuzz](https://www.cricbuzz.com) જોવા માટે કહો. જો સામાન્ય સમાચારો હોય તો નીચેના ગૂગલ ન્યૂઝ ફીડના આધારે સાચી માહિતી આપો અને જવાબના અંતે [Source: Google News Live RSS] લખો:\n\n${liveNewsContext.substring(0, 4000)}`;
+જો આ સવાલ લાઈવ ક્રિકેટ સ્કોર અથવા એવી રમત સાથે સંકળાયેલ હોય જે નીચે આપેલા ન્યૂઝ ફીડમાં ઉપલબ્ધ નથી, તો કોઈપણ કાલ્પનિક સ્કોર કે આંકડા ન આપતા સ્પષ્ટ કરો કે લાઈવ સ્કોર ઉપલબ્ધ નથી અને [Cricbuzz](https://www.cricbuzz.com) જોવા માટે કહો. જો સામાન્ય સમાચારો હોય તો નીચેના ગૂગલ ન્યૂઝ ફીડના આધારે સાચી માહિતી આપો અને જવાબના અંતે [Source: Google News Live RSS] લખો:\n\n${liveNewsContext.substring(0, 4000)}`;
         }
 
         let reply = await getAIResponse(promptText, history || [], imageBase64);
@@ -157,7 +163,7 @@ app.post('/api/solve-math', async (req, res) => {
         const mathPrompt = [
             { 
                 type: "text", 
-                text: comment || "આ ફોટામાં આપેલા ગણિતના દાખલાને ધ્યાનથી વાંચો અને સ્ટેપ-બાય-સ્ટેપ સાચો જવાબ શુદ્ધ ગુજરાતીમાં આપો. જવાબના અંતે [Source: AI Vision Math Solver] ચોક્કસ લખો." 
+                text: comment || "આ ફોટામાં આપેલા ગણિતના દાખલાને ધ્યાનથી વાંચો અને સ્ટેપ-બાય-સ્ટેપ સાચો જવાબ શુદ્ધ ગુજરાતીમાં આપો. જો દાખલો અસ્પષ્ટ કે ખોટો હોય તો ખોટો જવાબ આપવાને બદલે જણાવો કે રકમ સ્પષ્ટ નથી. જવાબના અંતે [Source: AI Vision Math Solver] ચોક્કસ લખો." 
             },
             { 
                 type: "image_url", 
@@ -172,7 +178,7 @@ app.post('/api/solve-math', async (req, res) => {
             messages: [
                 {
                     role: "system",
-                    content: "You are an expert Mathematics teacher. Solve math problems accurately with clear steps in pure Gujarati script."
+                    content: "You are an expert Mathematics teacher. Solve math problems accurately with clear steps in pure Gujarati script. Never guess or fabricate mathematical solutions."
                 },
                 { role: "user", content: mathPrompt }
             ],
@@ -235,7 +241,7 @@ app.post('/api/calculate-fitness', async (req, res) => {
         if (message && message.trim() !== "") {
             prompt = `પહેલા આપેલી વિગતો: ઉંમર ${uAge} વર્ષ, ઊંચાઈ ${uHeight} સેમી, વજન ${uWeight} કિલો, BMI ${bmi} (${weightStatus}).
 યુઝરનો નવો સવાલ: "${message}"
-કૃપા કરીને આ વિગતોને ધ્યાનમાં રાખીને યુઝરના સવાલનો શુદ્ધ ગુજરાતીમાં સાચો જવાબ આપો. જવાબના અંતે [Source: AI Health & Fitness Expert System] લખો.`;
+કૃપા કરીને આ વિગતોને ધ્યાનમાં રાખીને યુઝરના સવાલનો શુદ્ધ ગુજરાતીમાં સાચો જવાબ આપો. જો સવાલ આ ફિટનેસ ડેટા સાથે સંબંધિત ન હોય તો તથ્યપૂર્ણ જવાબ આપો. જવાબના અંતે [Source: AI Health & Fitness Expert System] લખો.`;
         }
 
         let fitnessReply = await getAIResponse(prompt, history || []);
@@ -273,7 +279,7 @@ app.post('/api/analyze-pdf', upload.single('pdfFile'), async (req, res) => {
         }
 
         const userComment = req.body.comment || "આ ડોક્યુમેન્ટનું પૃથ્થકરણ કરો.";
-        const fullPrompt = `DOCUMENT TEXT:\n${extractedText.substring(0, 8000)}\n\nUSER REQUEST: ${userComment}\n\nકૃપા કરીને આ દસ્તાવેજના આધારે જવાબ આપો અને જવાબના અંતે [Source: User Uploaded Document Analysis (${req.file.originalname})] લખો.`;
+        const fullPrompt = `DOCUMENT TEXT:\n${extractedText.substring(0, 8000)}\n\nUSER REQUEST: ${userComment}\n\nકૃપા કરીને માત્ર આ દસ્તાવેજમાં આપેલી વિગતોના આધારે જ જવાબ આપો, બહારની કોઈ કાલ્પનિક માહિતી ન ઉમેરતા. જવાબના અંતે [Source: User Uploaded Document Analysis (${req.file.originalname})] લખો.`;
 
         let aiReply = await getAIResponse(fullPrompt);
         res.json({ reply: aiReply });
@@ -287,7 +293,7 @@ app.post('/api/analyze-pdf', upload.single('pdfFile'), async (req, res) => {
 app.post('/api/generate-quiz', async (req, res) => {
     try {
         const { std, subject, chapter, totalMarks, questionTypes } = req.body;
-        const prompt = `કૃપા કરીને અધિકૃત GCERT/NCERT અભ્યાસક્રમ મુજબ ધોરણ ${std}, વિષય ${subject}, પ્રકરણ ${chapter} માટે કુલ ${totalMarks} ગુણની ક્વિઝ બનાવો જેમાં નીચેના પ્રકારના પ્રશ્નો સામેલ હોય: ${questionTypes.join(', ')}. જવાબના અંતે [Source: GCERT / NCERT Official Curriculum Standards] ચોક્કસ લખો.`;
+        const prompt = `કૃપા કરીને અધિકૃત GCERT/NCERT અભ્યાસક્રમ મુજબ ધોરણ ${std}, વિષય ${subject}, પ્રકરણ ${chapter} માટે કુલ ${totalMarks} ગુણની સાચી ક્વિઝ બનાવો જેમાં નીચેના પ્રકારના પ્રશ્નો સામેલ હોય: ${questionTypes.join(', ')}. જવાબના અંતે [Source: GCERT / NCERT Official Curriculum Standards] ચોક્કસ લખો.`;
         
         let quizReply = await getAIResponse(prompt);
         res.json({ reply: quizReply });
@@ -313,7 +319,7 @@ const fetchLiveNewsHandler = async (req, res) => {
             console.error("News RSS Error");
         }
 
-        const prompt = `આજે તારીખ ${todayDateStr} છે. નીચેના ગૂગલ ન્યૂઝ ફીડ ડેટાના આધારે ગુજરાત અને ભારતભરના સૌથી મહત્વપૂર્ણ તાજા અને સચોટ સમાચારો વિગતવાર ગુજરાતીમાં લખી આપો:\n\n${liveNewsContext.substring(0, 4000)}`;
+        const prompt = `આજે તારીખ ${todayDateStr} છે. નીચેના ગૂગલ ન્યૂઝ ફીડ ડેટાના આધારે ગુજરાત અને ભારતભરના સૌથી મહત્વપૂર્ણ તાજા અને સચોટ સમાચારો વિગતવાર ગુજરાતીમાં લખી આપો. જો ન્યૂઝ ફીડ ઉપલબ્ધ ન હોય તો કાલ્પનિક સમાચારો આપવાને બદલે જણાવો કે હાલમાં લેટેસ્ટ ન્યૂઝ ફીડ ઉપલબ્ધ નથી:\n\n${liveNewsContext.substring(0, 4000)}`;
         let newsReply = await getAIResponse(prompt);
         
         if (!newsReply.includes('Source:')) {
@@ -342,7 +348,7 @@ app.post('/api/detect-food', async (req, res) => {
         const foodPrompt = [
             { 
                 type: "text", 
-                text: comment || "આ ફોટામાં કયા ખાદ્ય પદાર્થો અથવા ફળો છે તેની યાદી શુદ્ધ ગુજરાતીમાં બનાવો. જવાબના અંતે [Source: AI Food & Nutrition Vision Detector] લખો." 
+                text: comment || "આ ફોટામાં કયા ખાદ્ય પદાર્થો અથવા ફળો છે તેની ચોક્કસ યાદી શુદ્ધ ગુજરાતીમાં બનાવો. જો ઓળખવામાં અસમર્થ હોવ તો અંદાજ લગાવવાને બદલે જણાવો કે ખાદ્ય પદાર્થ સ્પષ્ટ નથી. જવાબના અંતે [Source: AI Food & Nutrition Vision Detector] લખો." 
             },
             { 
                 type: "image_url", 
@@ -357,7 +363,7 @@ app.post('/api/detect-food', async (req, res) => {
             messages: [
                 {
                     role: "system",
-                    content: "You are an expert food and nutrition AI assistant. Analyze food images and reply accurately in pure Gujarati script."
+                    content: "You are an expert food and nutrition AI assistant. Analyze food images accurately in pure Gujarati script. Never guess unidentified items."
                 },
                 { role: "user", content: foodPrompt }
             ],
@@ -438,5 +444,5 @@ app.use(express.static('.'));
 
 // હોમ પેજ માટે રૂટ
 app.get('/', (req, res) => {
-    res.sendFile(__dirname + '/index.html');
+    res.sendFile(path.join(__dirname, 'index.html'));
 });
