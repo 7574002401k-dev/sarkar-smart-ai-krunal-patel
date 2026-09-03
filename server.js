@@ -67,10 +67,13 @@ async function getAIResponse(prompt, history = [], imageBase64 = null) {
                 role: "system", 
                 content: `You are an official multi-purpose AI educational and administrative assistant for Gujarat & India (Sarkar Smart AI).
 CURRENT REAL-TIME CONTEXT: Today is ${todayDateStr}.
-STRICT RULES:
-1. LANGUAGE MATCHING: Always reply in the exact same language in which the user asks the question or provides details (e.g., if the user asks/provides details in Gujarati, reply strictly in pure Gujarati; if in English, reply in English; if in Hindi, reply in Hindi).
-2. GOVERNMENT & EDUCATIONAL PRIORITY: Highly prioritize official government and educational frameworks, portals, and standards (such as GCERT, NCERT, Digital Gujarat, and official GOI/GOG portals) when answering curriculum, policy, or administrative queries.
-3. ACCURATE & DYNAMIC SOURCE CITATION: At the very end of your response, you MUST clearly state the actual and accurate source from where the details/facts were retrieved (e.g., [Source: GCERT / NCERT Official Curriculum], [Source: Google News Live RSS], [Source: Digital Gujarat Portal], etc.). Never attach a generic or mismatched source.` 
+
+STRICT RULES FOR ABSOLUTE TRUTH & FACTUALITY:
+1. NO HALLUCINATION / NO GUESSING: Never invent, guess, or fabricate facts, local histories, statistics, governance details, or names. Always provide true and fact-based answers.
+2. HONEST UNCERTAINTY: If you do not have verified, accurate, or clear information about a local, specific, or difficult question, do NOT make up an answer. Instead, explicitly and honestly state in pure Gujarati: "આ અંગે મારી પાસે સચોટ કે અધિકૃત માહિતી ઉપલબ્ધ નથી."
+3. LANGUAGE MATCHING: Always reply in the exact same language in which the user asks the question or provides details (e.g., if the user asks/provides details in Gujarati, reply strictly in pure Gujarati; if in English, reply in English; if in Hindi, reply in Hindi).
+4. GOVERNMENT & EDUCATIONAL PRIORITY: Highly prioritize official government and educational frameworks, portals, and standards (such as GCERT, NCERT, Digital Gujarat, and official GOI/GOG portals) when answering curriculum, policy, or administrative queries.
+5. ACCURATE & DYNAMIC SOURCE CITATION: At the very end of your response, you MUST clearly state the actual and accurate source from where the details/facts were retrieved (e.g., [Source: GCERT / NCERT Official Curriculum], [Source: Google News Live RSS], [Source: Digital Gujarat Portal], etc.). If factual details are unknown, state [Source: Verified AI Knowledge Limitation].` 
             },
             ...history.map(h => ({
                 role: h.role === 'model' ? 'assistant' : h.role,
@@ -185,12 +188,11 @@ app.post('/api/solve-math', async (req, res) => {
     }
 });
 
-// 💪 4. Health & Fitness Calculator Endpoint (મેમરી સાથે અપડેટેડ)
+// 💪 4. Health & Fitness Calculator Endpoint
 app.post('/api/calculate-fitness', async (req, res) => {
     try {
         const { gender, age, height, weight, activity, message, history } = req.body;
         
-        // જો યુઝરે સીધો રિપોર્ટ માંગ્યો હોય અથવા જૂના રિપોર્ટ પરથી નવો સવાલ પૂછ્યો હોય
         const uAge = parseFloat(age) || 42;
         const uHeight = parseFloat(height) || 148;
         const uWeight = parseFloat(weight) || 73.2;
@@ -219,13 +221,10 @@ app.post('/api/calculate-fitness', async (req, res) => {
         else if (bmi >= 25 && bmi < 30) weightStatus = "ઓવરવેટ (વધારાનું વજન)";
         else if (bmi >= 30) weightStatus = "મેદસ્વી (ઓબેઝ)";
 
-        // આદર્શ વજન (Ideal Weight) ની ગણતરી (BMI 22 ના આધારે)
         const idealWeightMin = (18.5 * (heightM * heightM)).toFixed(1);
         const idealWeightMax = (24.9 * (heightM * heightM)).toFixed(1);
-        const extraWeight = (uWeight - parseFloat(idealWeightMax)).toFixed(1);
 
-        let prompt = `એક હેલ્થ એક્સપર્ટ તરીકે નીચે આપેલા ડેટાના આધારે વિગતવાર ફિટનેસ રિપોર્ટ શુદ્ધ ગુજરાતી ભાષામાં તૈયાર કરો. યાદ રાખો કે કોઈપણ પ્રકારના ગણિતના સૂત્રો (formulas) કે સ્ટેપ-બાય-સ્ટેપ ગણતરી બિલકુલ લખવાની નથી. માત્ર તૈયાર આંકડાઓ દર્શાવવાના છે:
-
+        let prompt = `એક હેલ્થ એક્સપર્ટ તરીકે નીચે આપેલા ડેટાના આધારે વિગતવાર ફિટનેસ રિપોર્ટ શુદ્ધ ગુજરાતી ભાષામાં તૈયાર કરો:
 - લિંગ: ${uGender}
 - ઉંમર: ${uAge} વર્ષ
 - ઊંચાઈ: ${uHeight} સેમી
@@ -233,20 +232,13 @@ app.post('/api/calculate-fitness', async (req, res) => {
 - BMI આંકડો: ${bmi} (${weightStatus})
 - BMR: ${Math.round(bmr)} કૅલરી
 - દૈનિક કેલરીની જરૂરિયાત (TDEE): ${tdee} કૅલરી
-- આદર્શ વજનની શ્રેણી: ${idealWeightMin} થી ${idealWeightMax} કિલો (જેથી યુઝર જાણી શકે કે તેણે કેટલું વજન ઘટાડવું જરૂરી છે).
-
-રિપોર્ટમાં આ મુદ્દાઓ સામેલ કરો:
-1. બોડી વેઇટ સ્ટેટસ અને BMI નું સીધું પરિણામ.
-2. દૈનિક કેલરીની જરૂરિયાત (TDEE).
-3. **મારે કેટલું વજન ઘટાડવું જોઈએ?** તેનો સ્પષ્ટ જવાબ (વર્તમાન વજન અને આદર્શ વજનના તફાવત સાથે).
-4. વજન જાળવી રાખવા, ઘટાડવા કે વધારવા માટેની યોગ્ય આહાર અને કસરતની સલાહ.
+- આદર્શ વજનની શ્રેણી: ${idealWeightMin} થી ${idealWeightMax} કિલો.
 જવાબના અંતે [Source: AI Health & Fitness Expert System] ચોક્કસ લખો.`;
 
-        // જો યુઝરે રિપોર્ટ પછી કોઈ વધારાનો પ્રશ્ન પૂછ્યો હોય
         if (message && message.trim() !== "") {
-            prompt = `પહેલા આપેલી વિગતો: ઉંમર ${uAge} વર્ષ, ઊંચાઈ ${uHeight} સેમી, વજન ${uWeight} કિલો, BMI ${bmi} (${weightStatus}), આદર્શ વજન ${idealWeightMin}-${idealWeightMax} કિલો.
+            prompt = `પહેલા આપેલી વિગતો: ઉંમર ${uAge} વર્ષ, ઊંચાઈ ${uHeight} સેમી, વજન ${uWeight} કિલો, BMI ${bmi} (${weightStatus}).
 યુઝરનો નવો સવાલ: "${message}"
-કૃપા કરીને આ વિગતોને ધ્યાનમાં રાખીને યુઝરના સવાલનો શુદ્ધ ગુજરાતીમાં સચોટ જવાબ આપો. જવાબના અંતે [Source: AI Health & Fitness Expert System] લખો.`;
+કૃપા કરીને આ વિગતોને ધ્યાનમાં રાખીને યુઝરના સવાલનો શુદ્ધ ગુજરાતીમાં સાચો જવાબ આપો. જવાબના અંતે [Source: AI Health & Fitness Expert System] લખો.`;
         }
 
         let fitnessReply = await getAIResponse(prompt, history || []);
@@ -355,7 +347,7 @@ app.post('/api/detect-food', async (req, res) => {
         const foodPrompt = [
             { 
                 type: "text", 
-                text: comment || "આ ફોટામાં કયા કયા ખાદ્ય પદાર્થો, ફળો અથવા પીણાં (Food items, fruits, or drinks) છે તેની વિગતવાર યાદી શુદ્ધ ગુજરાતી ભાષામાં બનાવો અને તેના વિશે થોડી સંક્ષિપ્ત માહિતી આપો. જવાબના અંતે [Source: AI Food & Nutrition Vision Detector] ચોક્કસ લખો." 
+                text: comment || "આ ફોટામાં કયા કયા ખાદ્ય પદાર્થો, ફળો અથવા પીણાં છે તેની વિગતવાર યાદી શુદ્ધ ગુજરાતી ભાષામાં બનાવો. જવાબના અંતે [Source: AI Food & Nutrition Vision Detector] ચોક્કસ લખો." 
             },
             { 
                 type: "image_url", 
@@ -377,7 +369,16 @@ app.post('/api/detect-food', async (req, res) => {
             temperature: 0.2,
         });
 
-        // 🎂 9. Age Calculator Endpoint
+        const foodReply = response.choices[0].message.content;
+        res.json({ reply: foodReply });
+
+    } catch (error) {
+        console.error("Food Detector Error:", error);
+        res.status(500).json({ reply: "⚠️ ફોટો પ્રોસેસ કરવામાં એરર આવી. [Source: Food Vision Error]" });
+    }
+});
+
+// 🎂 9. Age Calculator Endpoint
 app.post('/api/calculate-age', async (req, res) => {
     try {
         const { birthDate, targetDate } = req.body;
@@ -407,21 +408,14 @@ app.post('/api/calculate-age', async (req, res) => {
             months += 12;
         }
 
-        // કુલ દિવસો અને કલાકોની ગણતરી
         const diffTime = Math.abs(tDate - bDate);
         const totalDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
         const totalHours = totalDays * 24;
 
-        const prompt = `એક હેલ્થ અને ડેટા એક્સપર્ટ તરીકે નીચે આપેલી ગણતરીના આધારે યુઝર માટે શુદ્ધ ગુજરાતીમાં એક સુંદર ઉંમર (Age) રિપોર્ટ તૈયાર કરો:
+        const prompt = `એક હેલ્થ અને ડેટા એક્સપર્ટ તરીકે નીચે આપેલી ગણતરીના આધારે યુઝર માટે શુદ્ધ ગુજરાતીમાં એક સુંદર ઉંમર રિપોર્ટ તૈયાર કરો:
 - જન્મતારીખ: ${birthDate}
-- વર્તમાન તારીખ / સરખામણી તારીખ: ${targetDate || new Date().toISOString().split('T')[0]}
 - ચોક્કસ ઉંમર: ${years} વર્ષ, ${months} મહિના, અને ${days} દિવસ
 - કુલ જીવેલા દિવસો: આશરે ${totalDays.toLocaleString()} દિવસો (${totalHours.toLocaleString()} કલાકો)
-
-રિપોર્ટમાં આ બાબતો સ્પષ્ટ અને આકર્ષક રીતે રજૂ કરો:
-1. વર્ષ, મહિના અને દિવસોમાં ઉંમર.
-2. કુલ દિવસો અને કલાકોની વિગત.
-3. આગામી જન્મદિવસ (Next Birthday) માં કેટલા મહિના અને દિવસો બાકી છે તેની નાની માહિતી.
 જવાબના અંતે [Source: AI Age Calculator System] ચોક્કસ લખો.`;
 
         const aiReply = await getAIResponse(prompt);
@@ -430,15 +424,6 @@ app.post('/api/calculate-age', async (req, res) => {
     } catch (error) {
         console.error("Age Calc Error:", error);
         res.status(500).json({ reply: "⚠️ ઉંમર ગણવામાં ક્ષતિ આવી. [Source: Age Calculator Error]" });
-    }
-});
-
-        const foodReply = response.choices[0].message.content;
-        res.json({ reply: foodReply });
-
-    } catch (error) {
-        console.error("Food Detector Error:", error);
-        res.status(500).json({ reply: "⚠️ ફોટો પ્રોસેસ કરવામાં એરર આવી. [Source: Food Vision Error]" });
     }
 });
 
@@ -455,7 +440,8 @@ app.listen(PORT, async () => {
         console.log("Browser auto-open skipped.");
     }
 });
-// સ્ટેટિક ફાઈલો (HTML, CSS, JS, Images) લોડ કરવા માટે
+
+// સ્ટેટિક ફાઈલો લોડ કરવા માટે
 app.use(express.static('.'));
 
 // હોમ પેજ માટે રૂટ
