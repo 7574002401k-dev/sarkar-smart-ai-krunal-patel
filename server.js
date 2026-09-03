@@ -39,7 +39,7 @@ function getCurrentIndianDate() {
     return new Intl.DateTimeFormat('en-US', options).format(new Date());
 }
 
-// 🧠 Unified AI Helper Function with Dynamic Source Attribution Rules
+// 🧠 Unified AI Helper Function with Ultra-Strict Factuality & Zero-Hallucination Rules
 async function getAIResponse(prompt, history = [], imageBase64 = null) {
     try {
         let userContent = prompt;
@@ -68,12 +68,12 @@ async function getAIResponse(prompt, history = [], imageBase64 = null) {
                 content: `You are an official multi-purpose AI educational and administrative assistant for Gujarat & India (Sarkar Smart AI).
 CURRENT REAL-TIME CONTEXT: Today is ${todayDateStr}.
 
-STRICT RULES FOR ABSOLUTE TRUTH & FACTUALITY:
-1. NO HALLUCINATION / NO GUESSING: Never invent, guess, or fabricate facts, local histories, statistics, governance details, or names. Always provide true and fact-based answers.
-2. HONEST UNCERTAINTY: If you do not have verified, accurate, or clear information about a local, specific, or difficult question, do NOT make up an answer. Instead, explicitly and honestly state in pure Gujarati: "આ અંગે મારી પાસે સચોટ કે અધિકૃત માહિતી ઉપલબ્ધ નથી."
-3. LANGUAGE MATCHING: Always reply in the exact same language in which the user asks the question or provides details (e.g., if the user asks/provides details in Gujarati, reply strictly in pure Gujarati; if in English, reply in English; if in Hindi, reply in Hindi).
-4. GOVERNMENT & EDUCATIONAL PRIORITY: Highly prioritize official government and educational frameworks, portals, and standards (such as GCERT, NCERT, Digital Gujarat, and official GOI/GOG portals) when answering curriculum, policy, or administrative queries.
-5. ACCURATE & DYNAMIC SOURCE CITATION: At the very end of your response, you MUST clearly state the actual and accurate source from where the details/facts were retrieved (e.g., [Source: GCERT / NCERT Official Curriculum], [Source: Google News Live RSS], [Source: Digital Gujarat Portal], etc.). If factual details are unknown, state [Source: Verified AI Knowledge Limitation].` 
+🚨 ABSOLUTE ZERO-HALLUCINATION & STRICT TRUTH POLICY:
+1. NEVER INVENT OR GUESS: Do not fabricate facts, statistics, local histories, names, rules, or unverified data. You must behave with extreme factual accuracy.
+2. MANDATORY HONEST UNCERTAINTY: If a user asks about a local, specific, or difficult question and you do not possess 100% verified, real-time, or official data, you MUST NOT make up an answer. Instead, reply strictly in pure Gujarati: "આ અંગે મારી પાસે સચોટ કે અધિકૃત માહિતી ઉપલબ્ધ નથી."
+3. LANGUAGE MATCHING: Always reply in the exact same language in which the user asks (e.g., pure Gujarati for Gujarati, English for English).
+4. GOVERNMENT & EDUCATIONAL PRIORITY: Prioritize official standards (GCERT, NCERT, Digital Gujarat, GOI/GOG portals).
+5. ACCURATE SOURCE CITATION: At the end of your response, state the actual source (e.g., [Source: GCERT / NCERT Official Curriculum], [Source: Google News Live RSS], [Source: Digital Gujarat Portal]). If information is unverified, state [Source: Verified AI Knowledge Limitation].` 
             },
             ...history.map(h => ({
                 role: h.role === 'model' ? 'assistant' : h.role,
@@ -85,7 +85,7 @@ STRICT RULES FOR ABSOLUTE TRUTH & FACTUALITY:
         const response = await openai.chat.completions.create({
             model: "gpt-4o-mini",
             messages: messages,
-            temperature: 0.2,
+            temperature: 0.0, // 👈 0.0 કરવાથી AI સરાસર કાલ્પનિક વાતો કરવાનું બંધ કરીને એકદમ સચોટ અને ટૂંકો સાચો જવાબ જ આપશે.
         });
 
         return response.choices[0].message.content;
@@ -141,7 +141,7 @@ app.post('/api/generate-image', async (req, res) => {
     }
 });
 
-// 🧮 3. Sidebar Maths Solver Vision Endpoint (Scans image and solves with steps in Gujarati)
+// 🧮 3. Sidebar Maths Solver Vision Endpoint
 app.post('/api/solve-math', async (req, res) => {
     try {
         const { imageBase64, comment } = req.body;
@@ -157,7 +157,7 @@ app.post('/api/solve-math', async (req, res) => {
         const mathPrompt = [
             { 
                 type: "text", 
-                text: comment || "આ ફોટામાં આપેલા ગણિતના દાખલાને ધ્યાનથી વાંચો, સમજો અને તેનું સ્ટેપ-બાય-સ્ટેપ સોલ્યુશન (પગલું દર પગલું રીત) સાથે સાચો જવાબ શુદ્ધ ગુજરાતી ભાષામાં સમજાવો. જવાબના અંતે [Source: AI Vision Math Solver] ચોક્કસ લખો." 
+                text: comment || "આ ફોટામાં આપેલા ગણિતના દાખલાને ધ્યાનથી વાંચો અને સ્ટેપ-બાય-સ્ટેપ સાચો જવાબ શુદ્ધ ગુજરાતીમાં આપો. જવાબના અંતે [Source: AI Vision Math Solver] ચોક્કસ લખો." 
             },
             { 
                 type: "image_url", 
@@ -172,16 +172,14 @@ app.post('/api/solve-math', async (req, res) => {
             messages: [
                 {
                     role: "system",
-                    content: "You are an expert Mathematics teacher for Gujarati students. You analyze math problems from images and provide clear, step-by-step solutions in pure Gujarati script."
+                    content: "You are an expert Mathematics teacher. Solve math problems accurately with clear steps in pure Gujarati script."
                 },
                 { role: "user", content: mathPrompt }
             ],
-            temperature: 0.2,
+            temperature: 0.0,
         });
 
-        const solutionReply = response.choices[0].message.content;
-        res.json({ reply: solutionReply });
-
+        res.json({ reply: response.choices[0].message.content });
     } catch (error) {
         console.error("Math Solver Error:", error);
         res.status(500).json({ reply: "⚠️ ગણિતનો દાખલો સોલ્વ કરવામાં એરર આવી. [Source: Math Solver Error]" });
@@ -215,7 +213,6 @@ app.post('/api/calculate-fitness', async (req, res) => {
         else if (uActivity.includes('Very') || uActivity.includes('ખૂબ')) multiplier = 1.725;
 
         const tdee = Math.round(bmr * multiplier);
-
         let weightStatus = "નોર્મલ વજન";
         if (bmi < 18.5) weightStatus = "અંડરવેટ (ઓછું વજન)";
         else if (bmi >= 25 && bmi < 30) weightStatus = "ઓવરવેટ (વધારાનું વજન)";
@@ -279,7 +276,6 @@ app.post('/api/analyze-pdf', upload.single('pdfFile'), async (req, res) => {
         const fullPrompt = `DOCUMENT TEXT:\n${extractedText.substring(0, 8000)}\n\nUSER REQUEST: ${userComment}\n\nકૃપા કરીને આ દસ્તાવેજના આધારે જવાબ આપો અને જવાબના અંતે [Source: User Uploaded Document Analysis (${req.file.originalname})] લખો.`;
 
         let aiReply = await getAIResponse(fullPrompt);
-
         res.json({ reply: aiReply });
     } catch (error) {
         console.error("File Analysis Route Error:", error);
@@ -294,7 +290,6 @@ app.post('/api/generate-quiz', async (req, res) => {
         const prompt = `કૃપા કરીને અધિકૃત GCERT/NCERT અભ્યાસક્રમ મુજબ ધોરણ ${std}, વિષય ${subject}, પ્રકરણ ${chapter} માટે કુલ ${totalMarks} ગુણની ક્વિઝ બનાવો જેમાં નીચેના પ્રકારના પ્રશ્નો સામેલ હોય: ${questionTypes.join(', ')}. જવાબના અંતે [Source: GCERT / NCERT Official Curriculum Standards] ચોક્કસ લખો.`;
         
         let quizReply = await getAIResponse(prompt);
-
         res.json({ reply: quizReply });
     } catch (error) {
         console.error("Quiz Gen Error:", error);
@@ -331,7 +326,7 @@ const fetchLiveNewsHandler = async (req, res) => {
     }
 };
 
-// 🍎 8. Food, Fruit & Drink Vision Detector Endpoint
+// 🍎 8. Food Vision Detector Endpoint
 app.post('/api/detect-food', async (req, res) => {
     try {
         const { imageBase64, comment } = req.body;
@@ -347,7 +342,7 @@ app.post('/api/detect-food', async (req, res) => {
         const foodPrompt = [
             { 
                 type: "text", 
-                text: comment || "આ ફોટામાં કયા કયા ખાદ્ય પદાર્થો, ફળો અથવા પીણાં છે તેની વિગતવાર યાદી શુદ્ધ ગુજરાતી ભાષામાં બનાવો. જવાબના અંતે [Source: AI Food & Nutrition Vision Detector] ચોક્કસ લખો." 
+                text: comment || "આ ફોટામાં કયા ખાદ્ય પદાર્થો અથવા ફળો છે તેની યાદી શુદ્ધ ગુજરાતીમાં બનાવો. જવાબના અંતે [Source: AI Food & Nutrition Vision Detector] લખો." 
             },
             { 
                 type: "image_url", 
@@ -362,16 +357,14 @@ app.post('/api/detect-food', async (req, res) => {
             messages: [
                 {
                     role: "system",
-                    content: "You are an expert food and nutrition AI assistant. You analyze images of food, fruits, and drinks, list the items accurately, and reply in pure Gujarati script."
+                    content: "You are an expert food and nutrition AI assistant. Analyze food images and reply accurately in pure Gujarati script."
                 },
                 { role: "user", content: foodPrompt }
             ],
-            temperature: 0.2,
+            temperature: 0.0,
         });
 
-        const foodReply = response.choices[0].message.content;
-        res.json({ reply: foodReply });
-
+        res.json({ reply: response.choices[0].message.content });
     } catch (error) {
         console.error("Food Detector Error:", error);
         res.status(500).json({ reply: "⚠️ ફોટો પ્રોસેસ કરવામાં એરર આવી. [Source: Food Vision Error]" });
@@ -383,7 +376,7 @@ app.post('/api/calculate-age', async (req, res) => {
     try {
         const { birthDate, targetDate } = req.body;
         if (!birthDate) {
-            return res.status(400).json({ reply: "⚠️ કૃપા કરીને જન્મતારીખ (Birth Date) પસંદ કરો." });
+            return res.status(400).json({ reply: "⚠️ કૃપા કરીને જન્મતારીખ પસંદ કરો." });
         }
 
         const bDate = new Date(birthDate);
@@ -412,7 +405,7 @@ app.post('/api/calculate-age', async (req, res) => {
         const totalDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
         const totalHours = totalDays * 24;
 
-        const prompt = `એક હેલ્થ અને ડેટા એક્સપર્ટ તરીકે નીચે આપેલી ગણતરીના આધારે યુઝર માટે શુદ્ધ ગુજરાતીમાં એક સુંદર ઉંમર રિપોર્ટ તૈયાર કરો:
+        const prompt = `એક હેલ્થ અને ડેટા એક્સપર્ટ તરીકે નીચે આપેલી ગણતરીના આધારે શુદ્ધ ગુજરાતીમાં ઉંમર રિપોર્ટ તૈયાર કરો:
 - જન્મતારીખ: ${birthDate}
 - ચોક્કસ ઉંમર: ${years} વર્ષ, ${months} મહિના, અને ${days} દિવસ
 - કુલ જીવેલા દિવસો: આશરે ${totalDays.toLocaleString()} દિવસો (${totalHours.toLocaleString()} કલાકો)
@@ -420,7 +413,6 @@ app.post('/api/calculate-age', async (req, res) => {
 
         const aiReply = await getAIResponse(prompt);
         res.json({ reply: aiReply });
-
     } catch (error) {
         console.error("Age Calc Error:", error);
         res.status(500).json({ reply: "⚠️ ઉંમર ગણવામાં ક્ષતિ આવી. [Source: Age Calculator Error]" });
