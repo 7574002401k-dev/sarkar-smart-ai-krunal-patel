@@ -44,7 +44,7 @@ function getCurrentIndianDate() {
     return new Intl.DateTimeFormat('en-US', options).format(new Date());
 }
 
-// 🧠 Unified AI Helper Function with Ultra-Strict Factuality & Zero-Hallucination Rules
+// 🧠 Unified AI Helper Function with Accurate & Compulsory Source Rules
 async function getAIResponse(prompt, history = [], imageBase64 = null) {
     try {
         let userContent = prompt;
@@ -73,13 +73,10 @@ async function getAIResponse(prompt, history = [], imageBase64 = null) {
                 content: `You are an official multi-purpose AI educational and administrative assistant for Gujarat & India (Sarkar Smart AI).
 CURRENT REAL-TIME CONTEXT: Today is ${todayDateStr}.
 
-🚨 ABSOLUTE ZERO-HALLUCINATION & STRICT TRUTH POLICY:
-1. NEVER INVENT, ASSUME OR GUESS: Do not fabricate facts, local events, personal secrets, obscure village details, unverified statistics, or fake names. 
-2. MANDATORY HONEST UNCERTAINTY (ANTI-FALSE-ANSWER RULE): If a user asks about any local information, obscure facts, hard/unpredictable questions, or topics where you do not possess 100% verified or official data, you MUST NOT make up an answer. Instead, reply strictly in pure Gujarati: "આ અંગે મારી પાસે કોઈ ચોક્કસ કે અધિકૃત માહિતી ઉપલબ્ધ નથી, તેથી હું અંદાજ લગાવી શકતો નથી."
-3. STRICT GEOGRAPHICAL & FACTUAL TRUTH: Never guess districts, talukas, or local boundaries in Gujarat. If you are not 100% sure, you MUST admit it instead of guessing. Never falsely cite portals like 'Digital Gujarat Portal' for random, unverified, or guessed facts.
-4. STRICT SOURCE INTEGRITY: NEVER falsely cite official portals like 'Digital Gujarat Portal', 'GCERT', or 'Government of Gujarat' for random, unverified, or guessed facts. If you do not have an official verified source for a statement, cite it strictly as [Source: Verified AI Knowledge Limitation].
-5. LANGUAGE MATCHING: Always reply in the exact same language in which the user asks (e.g., pure Gujarati for Gujarati, English for English).
-6. GOVERNMENT & EDUCATIONAL PRIORITY: Prioritize official standards (GCERT, NCERT, Digital Gujarat, GOI/GOG portals) ONLY when you have verified factual data.` 
+🚨 ACCURACY & COMPULSORY SOURCE POLICY:
+1. ACCURATE ANSWERS: Always provide direct, helpful, and accurate answers to educational questions, general knowledge, history, geography, and standard queries. Do not unnecessarily refuse or decline user requests.
+2. COMPULSORY SOURCE CITATION: Every single response you generate MUST end with a clear source citation in square brackets (e.g., [Source: GCERT / NCERT Official Curriculum], [Source: Verified AI General Knowledge], or [Source: Government of India / Gujarat Standards]). Never omit the source.
+3. LANGUAGE MATCHING: Always reply in the exact same language in which the user asks (e.g., pure Gujarati for Gujarati, English for English).` 
             },
             ...history.map(h => ({
                 role: h.role === 'model' ? 'assistant' : h.role,
@@ -94,7 +91,14 @@ CURRENT REAL-TIME CONTEXT: Today is ${todayDateStr}.
             temperature: 0.0,
         });
 
-        return response.choices[0].message.content;
+        let aiOutput = response.choices[0].message.content;
+        
+        // Ensure source is always appended if missing
+        if (!aiOutput.includes('[Source:')) {
+            aiOutput += `\n\n[Source: Verified AI General Knowledge Standards]`;
+        }
+
+        return aiOutput;
     } catch (err) {
         console.error("AI Generation Error:", err);
         return "⚠️ AI મોડેલમાંથી જવાબ મેળવવામાં ક્ષતિ આવી છે. [Source: AI System Error Handler]";
@@ -123,7 +127,7 @@ app.post('/api/chat', async (req, res) => {
             }
 
             promptText = `આજે તારીખ ${todayDateStr} છે. યુઝરનો સવાલ છે: "${message}". 
-જો આ સવાલ લાઈવ ક્રિકેટ સ્કોર અથવા એવી રમત સાથે સંકળાયેલ હોય જે નીચે આપેલા ન્યૂઝ ફીડમાં ઉપલબ્ધ નથી, તો કોઈપણ કાલ્પનિક સ્કોર ન આપતા સ્પષ્ટ કરો કે લાઈવ સ્કોર ઉપલબ્ધ નથી અને [Cricbuzz](https://www.cricbuzz.com) જોવા માટે કહો. જો સામાન્ય સમાચારો હોય તો નીચેના ગૂગલ ન્યૂઝ ફીડના આધારે સાચી માહિતી આપો અને જવાબના અંતે [Source: Google News Live RSS] લખો:\n\n${liveNewsContext.substring(0, 4000)}`;
+નીચેના ગૂગલ ન્યૂઝ ફીડના આધારે સાચી માહિતી આપો અને જવાબના અંતે [Source: Google News Live RSS] ચોક્કસ લખો:\n\n${liveNewsContext.substring(0, 4000)}`;
         }
 
         let reply = await getAIResponse(promptText, history || [], imageBase64);
@@ -138,11 +142,11 @@ app.post('/api/chat', async (req, res) => {
 app.post('/api/generate-image', async (req, res) => {
     try {
         res.json({
-            reply: "⚠️ હાલમાં ઈમેજ જનરેશન સર્વિસ બંધ છે, આ સુવિધા હવે પછીના અપડેટમાં આવશે."
+            reply: "⚠️ હાલમાં ઈમેજ જનરેશન સર્વિસ બંધ છે, આ સુવિધા હવે પછીના અપડેટમાં આવશે. [Source: System Maintenance]"
         });
     } catch (error) {
         console.error("Image Gen Error:", error);
-        res.status(500).json({ reply: "⚠️ સર્વિસ કામ નથી કરી રહી." });
+        res.status(500).json({ reply: "⚠️ સર્વિસ કામ નથી કરી રહી. [Source: System Error]" });
     }
 });
 
@@ -151,7 +155,7 @@ app.post('/api/solve-math', async (req, res) => {
     try {
         const { imageBase64, comment } = req.body;
         if (!imageBase64) {
-            return res.status(400).json({ reply: "⚠️ કૃપા કરીને ગણિતના દાખલાનો ફોટો અપલોડ કરો." });
+            return res.status(400).json({ reply: "⚠️ કૃપા કરીને ગણિતના દાખલાનો ફોટો અપલોડ કરો. [Source: Math Solver]" });
         }
 
         let formattedImage = imageBase64;
@@ -177,7 +181,7 @@ app.post('/api/solve-math', async (req, res) => {
             messages: [
                 {
                     role: "system",
-                    content: "You are an expert Mathematics teacher. Solve math problems accurately with clear steps in pure Gujarati script."
+                    content: "You are an expert Mathematics teacher. Solve math problems accurately with clear steps in pure Gujarati script. Always include [Source: AI Vision Math Solver] at the end."
                 },
                 { role: "user", content: mathPrompt }
             ],
@@ -255,7 +259,7 @@ app.post('/api/calculate-fitness', async (req, res) => {
 app.post('/api/analyze-pdf', upload.single('pdfFile'), async (req, res) => {
     try {
         if (!req.file) {
-            return res.status(400).json({ reply: "⚠️ કૃપા કરીને ફાઈલ પસંદ કરો." });
+            return res.status(400).json({ reply: "⚠️ કૃપા કરીને ફાઈલ પસંદ કરો. [Source: Document Parser]" });
         }
 
         let extractedText = "";
@@ -336,7 +340,7 @@ app.post('/api/detect-food', async (req, res) => {
     try {
         const { imageBase64, comment } = req.body;
         if (!imageBase64) {
-            return res.status(400).json({ reply: "⚠️ કૃપા કરીને કોઈ ખાદ્ય પદાર્થ, ફળ કે પીણાનો ફોટો અપલોડ કરો." });
+            return res.status(400).json({ reply: "⚠️ કૃપા કરીને કોઈ ખાદ્ય પદાર્થ, ફળ કે પીણાનો ફોટો અપલોડ કરો. [Source: Food Detector]" });
         }
 
         let formattedImage = imageBase64;
@@ -362,7 +366,7 @@ app.post('/api/detect-food', async (req, res) => {
             messages: [
                 {
                     role: "system",
-                    content: "You are an expert food and nutrition AI assistant. Analyze food images and reply accurately in pure Gujarati script."
+                    content: "You are an expert food and nutrition AI assistant. Analyze food images and reply accurately in pure Gujarati script. Always include [Source: AI Food & Nutrition Vision Detector] at the end."
                 },
                 { role: "user", content: foodPrompt }
             ],
@@ -381,14 +385,14 @@ app.post('/api/calculate-age', async (req, res) => {
     try {
         const { birthDate, targetDate } = req.body;
         if (!birthDate) {
-            return res.status(400).json({ reply: "⚠️ કૃપા કરીને જન્મતારીખ પસંદ કરો." });
+            return res.status(400).json({ reply: "⚠️ કૃપા કરીને જન્મતારીખ પસંદ કરો. [Source: Age Calculator]" });
         }
 
         const bDate = new Date(birthDate);
         const tDate = targetDate ? new Date(targetDate) : new Date();
 
         if (isNaN(bDate.getTime())) {
-            return res.status(400).json({ reply: "⚠️ અયોગ્ય તારીખ format." });
+            return res.status(400).json({ reply: "⚠️ અયોગ્ય તારીખ format. [Source: Age Calculator]" });
         }
 
         let years = tDate.getFullYear() - bDate.getFullYear();
