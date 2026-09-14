@@ -147,7 +147,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     });
 
-    // 4. File / Image Attachment Selection (સંપૂર્ણ સુધારેલું જેથી ફોટો સિલેક્ટ થતા જ AI પ્રોસેસિંગ શરૂ થાય)
+    // 4. File / Image Attachment Selection
     if (menuFileBtn && fileInput) menuFileBtn.addEventListener("click", () => fileInput.click());
     if (menuGalleryBtn && galleryInput) menuGalleryBtn.addEventListener("click", () => galleryInput.click());
     if (openPdfReaderBtn && fileInput) openPdfReaderBtn.addEventListener("click", () => fileInput.click());
@@ -161,8 +161,6 @@ document.addEventListener("DOMContentLoaded", () => {
             if (previewFileName) previewFileName.textContent = `📎 પસંદ કરેલી ફાઈલ: ${selectedFile.name}`;
             if (filePreviewBar) filePreviewBar.classList.remove("hidden");
 
-            // જો યુઝરે ઇમેજ/ફોટો સિલેક્ટ કર્યો હોય, તો યુઝરે કંઈપણ લખ્યા વગર પણ સીધો સબમિટ ફોર્મ જેવું જ કામ ઓટોમેટિક અથવા ચેટમાં મોકલી શકાય
-            // અથવા યુઝર 'મોકલો' બટન દબાવે ત્યારે તે પ્રોસેસ થશે. જો સીધેસીધું રીડ કરાવવું હોય તો નીચે મુજબ કોલ કરી શકાય:
             if (selectedFile.type.startsWith("image/")) {
                 const reader = new FileReader();
                 reader.onload = async () => {
@@ -172,7 +170,6 @@ document.addEventListener("DOMContentLoaded", () => {
                     if (userInput) userInput.value = "";
                     if (filePreviewBar) filePreviewBar.classList.add("hidden");
 
-                    // ચેટમાં યુઝરનો મેસેજ અને ફોટો બતાવો
                     const userMsgDiv = document.createElement('div');
                     userMsgDiv.className = 'message user-message';
                     userMsgDiv.innerHTML = `<div class="message-content">🖼️ [અપલોડ કરેલો ફોટો]: ${comment}<br><img src="${base64Image}" style="max-width:200px; border-radius:8px; margin-top:8px; display:block;"></div>`;
@@ -240,7 +237,7 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-    // 5. Camera & Scanner Operations
+    // 5. Camera & Scanner Operations (ઉન્નત કરેલ Math Solver સુધારો)
     async function startCamera() {
         try {
             if (cameraCanvas) {
@@ -306,15 +303,18 @@ document.addEventListener("DOMContentLoaded", () => {
             const base64Image = cameraCanvas.toDataURL("image/jpeg");
             stopCamera();
 
-            appendMessage("📷 [કેમેરા સ્કેનર]: ગણિતના દાખલાનું વિશ્લેષણ અને સોલ્યુશન મેળવવામાં આવી રહ્યું છે...", "user-message");
-            const loadingDiv = appendMessage("🔄 AI સોલ્યુશન તૈયાર થઈ રહ્યું છે...", "assistant-message");
+            appendMessage("📷 [Math Solver કેમેરા સ્કેનર]: ગણિતના દાખલાનું વિશ્લેષણ અને સ્ટેપ-બાય-સ્ટેપ ઉકેલ મેળવવામાં આવી રહ્યું છે...", "user-message");
+            const loadingDiv = appendMessage("🔄 AI ગણિતના દાખલાનું સોલ્યુશન તૈયાર કરી રહ્યું છે...", "assistant-message");
 
             try {
+                // Math solver માટે વધુ સ્પષ્ટ અને સચોટ પ્રોમ્પ્ટ સુધારો ઉમેરવામાં આવ્યો છે
+                const mathPrompt = "આ કેમેરા દ્વારા કેપ્ચર કરેલા ગણિતના દાખલા (Math Problem) ને ધ્યાનથી વાંચો. દાખલાની રકમ ઓળખીને તેને સ્ટેપ-બાય-સ્ટેપ (Step-by-Step) સરળ અને સ્પષ્ટ ગુજરાતી ભાષામાં ઉકેલીને સમજાવો. [Source: GCERT/NCERT Mathematics Expert Assistant]";
+
                 const res = await fetch("/api/chat", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({
-                        message: "આ ગણિતના દાખલાને સ્ટેપ-બાય-સ્ટેપ ઉકેલીને સમજાવો.",
+                        message: mathPrompt,
                         imageBase64: base64Image,
                         history: conversationHistory
                     })
@@ -322,15 +322,15 @@ document.addEventListener("DOMContentLoaded", () => {
 
                 const data = await res.json();
                 if (loadingDiv) loadingDiv.remove();
-                const replyText = data.reply || "⚠️ સોલ્યુશન મેળવવામાં ભૂલ થઈ. [Source: GCERT/NCERT Educational Assistant]";
+                const replyText = data.reply || "⚠️ ગણિતના દાખલાનું સોલ્યુશન મેળવવામાં ભૂલ થઈ. [Source: GCERT/NCERT Educational Assistant]";
                 appendMessage(replyText, "assistant-message");
 
-                conversationHistory.push({ role: "user", parts: [{ text: "[કેમેરા સ્કેનરથી મેથ્સ સોલ્યુશન માટે ફોટો અપલોડ કર્યો]" }] });
+                conversationHistory.push({ role: "user", parts: [{ text: "[Math Solver કેમેરા સ્કેનરથી દાખલાનો ફોટો મોકલ્યો]" }] });
                 conversationHistory.push({ role: "model", parts: [{ text: replyText }] });
 
             } catch (err) {
                 if (loadingDiv) loadingDiv.remove();
-                appendMessage("⚠️ સર્વર પ્રોસેસિંગમાં તકલીફ થઈ. [Source: System]", "assistant-message");
+                appendMessage("⚠️ ગણિત સોલ્યુશન સર્વર પ્રોસેસિંગમાં તકલીફ થઈ. [Source: System]", "assistant-message");
             }
         });
     }
