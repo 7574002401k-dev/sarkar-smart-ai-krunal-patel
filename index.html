@@ -100,41 +100,17 @@
 
             <div class="features-menu">
                 <h3 data-translate="toolsTitle">🚀 ટૂલ્સ & ટાસ્ક</h3>
-
-                <div class="features-menu">
-    <h3 data-translate="toolsTitle">🚀 ટૂલ્સ & ટાસ્ક</h3>
-    
-    <!-- 🧮 સ્માર્ટ વૉઇး કેલ્ક્યુલેટર બટન -->
-    <button class="feature-item" id="openSmartCalcBtn" style="background: rgba(0, 210, 255, 0.15); border: 1px solid rgba(0, 210, 255, 0.4);">
-        <i class="fa-solid fa-microphone-lines" style="color: #00d2ff;"></i> <span data-translate="smartCalc">સ્માર્ટ વૉઇး કેલ્ક્યુલેટર</span>
-    </button>
-
-    <!-- 🧮 ગણિત સોલ્વર (Maths Solver) બટન - આ ઉમેરવું -->
-    <button class="feature-item" id="openCameraModalBtn">
-        <i class="fa-solid fa-calculator"></i> <span data-translate="mathSolver">ગણિત સોલ્વર (કેમેરા/સ્કેનર)</span>
-    </button>
-
-    <button class="feature-item" id="openPdfReaderBtn">
-        <i class="fa-solid fa-file-pdf"></i> <span data-translate="pdfReader">PDF / ડોક્યુમેન્ટ રીડર</span>
-    </button>
-    <button class="feature-item" id="openQuizModalBtn">
-        <i class="fa-solid fa-file-pen"></i> <span data-translate="quizGen">ક્વિઝ ક્રિએટર</span>
-    </button>
-    <button class="feature-item" id="openFitnessModalBtn">
-        <i class="fa-solid fa-heart-pulse"></i> <span data-translate="fitnessCalc">હેલ્થ & ફિટનેસ કેલ્ક્યુલેટર</span>
-    </button>
-    <button class="feature-item" id="openFoodDetectorBtn">
-        <i class="fa-solid fa-utensils"></i> <span data-translate="foodDetector">ફૂડ & ફ્રૂટ સ્કેનર (આઈટમ ડિટેક્ટર)</span>
-    </button>
-    <button class="feature-item" id="openAgeModalBtn">
-        <i class="fa-solid fa-cake-candles"></i> <span data-translate="ageCalc">વય (Age) કેલ્ક્યુલેટર</span>
-    </button>
-</div>
-              
-                <!-- 🧮 સ્માર્ટ વૉઇસ કેલ્ક્યુલેટર બટન -->
+                
+                <!-- 🧮 સ્માર્ટ વૉઇး કેલ્ક્યુલેટર બટન -->
                 <button class="feature-item" id="openSmartCalcBtn" style="background: rgba(0, 210, 255, 0.15); border: 1px solid rgba(0, 210, 255, 0.4);">
                     <i class="fa-solid fa-microphone-lines" style="color: #00d2ff;"></i> <span data-translate="smartCalc">સ્માર્ટ વૉઇး કેલ્ક્યુલેટર</span>
                 </button>
+
+                <!-- 🧮 ગણિત સોલ્વર (Maths Solver) બટન -->
+                <button class="feature-item" id="openCameraModalBtn">
+                    <i class="fa-solid fa-calculator"></i> <span data-translate="mathSolver">ગણિત સોલ્વર (કેમેરા/સ્કેનર)</span>
+                </button>
+
                 <button class="feature-item" id="openPdfReaderBtn">
                     <i class="fa-solid fa-file-pdf"></i> <span data-translate="pdfReader">PDF / ડોક્યુમેન્ટ રીડર</span>
                 </button>
@@ -202,7 +178,7 @@
                 <button id="removeFileBtn">&times;</button>
             </div>
 
-            <!-- Chat Input Controls (પ્લસ બટન હટાવીને સાફ કર્યું છે) -->
+            <!-- Chat Input Controls -->
             <div class="chat-input-wrapper">
                 <form id="chatForm" class="chat-form">
                     <input type="file" id="fileInput" class="hidden" accept=".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg">
@@ -436,7 +412,7 @@
         </div>
     </div>
 
-    <!-- JavaScript for Language Switcher & Sidebar Gallery Trigger -->
+    <!-- JavaScript for Language Switcher & Modals Trigger -->
     <script>
         const translations = {
             gu: {
@@ -488,24 +464,33 @@
             });
         }
 
-        // સાઇડબાર ગેલેરી બટન ક્લિક થતાં ફાઇલ અપલોડ ઓપન કરવાનું લોજિક
+        // સાઇડબાર અને મોડલ ઓપન/ક્લોઝ કરવા માટેનું લોજિક (મેથ્સ સોલ્વર બટન સક્રિય કરવા માટે)
         document.addEventListener('DOMContentLoaded', () => {
-            const sidebarGalleryBtn = document.getElementById('sidebarGalleryBtn');
-            const sidebarFileInput = document.getElementById('sidebarFileInput');
             const sidebar = document.getElementById('sidebar');
             const sidebarOverlay = document.getElementById('sidebarOverlay');
 
-            if (sidebarGalleryBtn && sidebarFileInput) {
-                sidebarGalleryBtn.addEventListener('click', () => {
-                    sidebarFileInput.click(); // ગેલેરી ઓપન કરશે
+            // ગણિત સોલ્વર મોડલ (Camera Modal) ઓપન કરવાનું લોજિક
+            const openCameraModalBtn = document.getElementById('openCameraModalBtn');
+            const cameraModal = document.getElementById('cameraModal');
+            const closeCameraModalBtn = document.getElementById('closeCameraModalBtn');
+
+            if (openCameraModalBtn && cameraModal) {
+                openCameraModalBtn.addEventListener('click', () => {
+                    cameraModal.classList.remove('hidden');
                     if (sidebar) sidebar.classList.remove('active');
                     if (sidebarOverlay) sidebarOverlay.classList.remove('active');
+                });
+            }
+
+            if (closeCameraModalBtn && cameraModal) {
+                closeCameraModalBtn.addEventListener('click', () => {
+                    cameraModal.classList.add('hidden');
                 });
             }
         });
     </script>
 
-    <!-- 🧮 સ્માર્ટ વૉઇး કેલ્ક્યુલેટર (સંપૂર્ણ સુધારેલું જાવાસ્ક્રિપ્ટ લોજિક) -->
+    <!-- 🧮 સ્માર્ટ વૉઇး કેલ્ક્યુલેટર જાવાસ્ક્રિપ્ટ લોજિક -->
     <script>
         document.addEventListener("DOMContentLoaded", () => {
             const openSmartCalcBtn = document.getElementById('openSmartCalcBtn');
