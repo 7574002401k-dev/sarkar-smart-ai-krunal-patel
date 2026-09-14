@@ -74,7 +74,7 @@ async function getAIResponse(prompt, history = [], imageBase64 = null) {
 CURRENT REAL-TIME CONTEXT: Today is ${todayDateStr}.
 
 🚨 ACCURACY & COMPULSORY SOURCE POLICY:
-1. ACCURATE ANSWERS: Always provide direct, helpful, and accurate answers to educational questions, general knowledge, history, geography, and standard queries. Do not unnecessarily refuse or decline user requests.
+1. ACCURATE ANSWERS: Always provide direct, helpful, and mathematically sound accurate answers to educational questions, general knowledge, history, geography, and standard queries. Do not unnecessarily refuse or decline user requests.
 2. COMPULSORY SOURCE CITATION: Every single response you generate MUST end with a clear source citation in square brackets (e.g., [Source: GCERT / NCERT Official Curriculum], [Source: Verified AI General Knowledge], or [Source: Government of India / Gujarat Standards]). Never omit the source.
 3. LANGUAGE MATCHING: Always reply in the exact same language in which the user asks (e.g., pure Gujarati for Gujarati, English for English).` 
             },
@@ -150,7 +150,7 @@ app.post('/api/generate-image', async (req, res) => {
     }
 });
 
-// 🧮 3. Sidebar Maths Solver Vision Endpoint
+// 🧮 3. Sidebar Maths Solver Vision Endpoint (સંપૂર્ણ સુધારેલું અને સચોટ)
 app.post('/api/solve-math', async (req, res) => {
     try {
         const { imageBase64, comment } = req.body;
@@ -166,7 +166,7 @@ app.post('/api/solve-math', async (req, res) => {
         const mathPrompt = [
             { 
                 type: "text", 
-                text: comment || "આ ફોટામાં આપેલા ગણિતના દાખલાને ધ્યાનથી વાંચો અને સ્ટેપ-બાય-સ્ટેપ સાચો જવાબ શુદ્ધ ગુજરાતીમાં આપો. જવાબના અંતે [Source: AI Vision Math Solver] ચોક્કસ લખો." 
+                text: comment || "આ ફોટામાં આપેલા ગણિતના દાખલાને ધ્યાનથી વાંચો, તેની અંદર રહેલા અંકો અને ચિહ્નો (signs) ને બરાબર સમજો. ત્યારબાદ ગણિતના નિયમો મુજબ સ્ટેપ-બાય-સ્ટેપ એકદમ સાચો અને સ્પષ્ટ જવાબ શુદ્ધ ગુજરાતીમાં લખો. જવાબના અંતે [Source: AI Vision Math Solver] ચોક્કસ લખો." 
             },
             { 
                 type: "image_url", 
@@ -181,7 +181,7 @@ app.post('/api/solve-math', async (req, res) => {
             messages: [
                 {
                     role: "system",
-                    content: "You are an expert Mathematics teacher. Solve math problems accurately with clear steps in pure Gujarati script. Always include [Source: AI Vision Math Solver] at the end."
+                    content: "You are an expert Mathematics Professor and Problem Solver. Analyze mathematical equations or word problems from the image with 100% precision. Provide accurate step-by-step calculations and final answers in pure Gujarati script. Never make arithmetic errors. Always include [Source: AI Vision Math Solver] at the end."
                 },
                 { role: "user", content: mathPrompt }
             ],
