@@ -307,7 +307,6 @@ document.addEventListener("DOMContentLoaded", () => {
             const loadingDiv = appendMessage("🔄 AI ગણિતના દાખલાનું સોલ્યુશન તૈયાર કરી રહ્યું છે...", "assistant-message");
 
             try {
-                // Math solver માટે વધુ સ્પષ્ટ અને સચોટ પ્રોમ્પ્ટ સુધારો ઉમેરવામાં આવ્યો છે
                 const mathPrompt = "આ કેમેરા દ્વારા કેપ્ચર કરેલા ગણિતના દાખલા (Math Problem) ને ધ્યાનથી વાંચો. દાખલાની રકમ ઓળખીને તેને સ્ટેપ-બાય-સ્ટેપ (Step-by-Step) સરળ અને સ્પષ્ટ ગુજરાતી ભાષામાં ઉકેલીને સમજાવો. [Source: GCERT/NCERT Mathematics Expert Assistant]";
 
                 const res = await fetch("/api/chat", {
